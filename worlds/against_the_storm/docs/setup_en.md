@@ -9,7 +9,7 @@
 
 ## Installing the Archipelago Mod to Against The Storm
 1. Open the Thunderstore Mod Manager.
-2. Search for the game Against the Storm and select it. (The first I did while modding, the game didn't appear. Just closing and reopening Thunderstore I think worked for me)
+2. Search for the game Against the Storm and select it. (The first time I did while modding, the game didn't appear. Just closing and reopening Thunderstore I think worked for me)
 3. Click Select Profile.
     - Optional: Create a new modding profile and name, if you don't want to use the Default
 4. Click the Get Mods tab.
