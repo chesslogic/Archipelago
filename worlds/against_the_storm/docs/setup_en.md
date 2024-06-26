@@ -4,7 +4,7 @@
 * Latest release of [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases). Currently tested/working on version 0.4.6.
 * [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager). (While a mod manager is not technically required, this guide will walk through using it to set up the mod)
 * The `against_the_storm.apworld` from the latest [Against The Storm for Archipelago](https://github.com/RyanCirincione/ArchipelagoATS/releases) release.
-* A legal copy of Against The Storm (working as of v1.3.4).
+* A legal copy of Against the Storm (working as of v1.3.4).
    * Only tested on Steam version.
 
 ## Installing the Archipelago Mod to Against The Storm
