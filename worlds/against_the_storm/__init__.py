@@ -1,3 +1,5 @@
+import string
+from typing import Any, Dict
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule
 from BaseClasses import Region
@@ -9,10 +11,10 @@ from .Recipes import satisfies_recipe
 
 class AgainstTheStormWorld(World):
     """
-    Against The Storm is a roguelite city builder
+    Against the Storm is a roguelite city builder
     """
 
-    game = "Against The Storm"
+    game = "Against the Storm"
     options_dataclass = AgainstTheStormOptions
     options: AgainstTheStormOptions
     topology_present = True
@@ -42,6 +44,12 @@ class AgainstTheStormWorld(World):
         self.multiworld.completion_condition[self.player] = lambda state: satisfies_recipe(state, self.player,
                 ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea', 'Coal,Oil,Sea Marrow', 'Amber', 'Tools', 'Purging Fire', 'Planks', 'Bricks', 'Fabric'])
         for location, logic in location_dict.items():
-            print(f"Loc: {location}|{logic}") # DELETEME
             set_rule(self.multiworld.get_location(location, self.player), lambda state, logic=logic: satisfies_recipe(state, self.player, logic))
+
+    def fill_slot_data(self) -> Dict[str, Any]:
+        return {
+            "deathlink": self.options.deathlink.value,
+            "recipe_shuffle": self.options.recipe_shuffle.value,
+            "seed": self.random.randint(0, 2147483647)
+        }
     

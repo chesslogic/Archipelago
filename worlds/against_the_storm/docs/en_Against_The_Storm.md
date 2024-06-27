@@ -1,7 +1,8 @@
 # Against The Storm
 
 ## What does randomization do to this game?
-All resources are blocked from being acquired until their Item is received from Archipelago. TODO: enable dev console even in non-experimental branch.
+All resources are blocked from being acquired until their Item is received from Archipelago.
+Optionally, all production recipes can be shuffled.
 
 ## What Against The Storm items are randomized?
 "Items" in this case are the ability to acquire the blocked resources. The resource exceptions to this are only Wood and the Waters, and the acquistion exceptions are embarkation bonuses, and building deconstruction.
@@ -30,5 +31,6 @@ Locations are essentially just a list of custom deeds designed to cover many asp
 ## What is the goal of this game when randomized?
 To reforge a seal in the sealed forest.
 
-## Current Version (Alpha v0.1.0) Limitations and Issues
-* Needing to use the experimental build to see the dev console is not ideal
+## Current Version (Alpha v0.2.0) Limitations and Issues
+* Need better UX around locked items, such as icons and automatically disabled recipes
+* The ap.connect warning doesn't dismiss itself
