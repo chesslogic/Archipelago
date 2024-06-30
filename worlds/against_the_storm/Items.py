@@ -1,7 +1,7 @@
 from BaseClasses import Item, ItemClassification
 
 class AgainstTheStormItem(Item):
-    game: str = "Against The Storm"
+    game: str = "Against the Storm"
 
 item_dict = {
     "Berries": (ItemClassification.progression, 1),

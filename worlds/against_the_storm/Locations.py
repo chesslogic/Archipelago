@@ -1,7 +1,7 @@
 from BaseClasses import Location
 
 class AgainstTheStormLocation(Location):
-    game: str = "Against The Storm"
+    game: str = "Against the Storm"
 
 location_dict = {
     "First Reputation through Resolve - Humans": ["Porridge,Biscuits,Pie,Coats", "Planks", "Bricks"],
