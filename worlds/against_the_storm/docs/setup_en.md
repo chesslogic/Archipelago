@@ -32,7 +32,7 @@
 1. Go to Thunderstore Mod Manager, open your Against the Storm profile with the Against the Storm for Archipelago mod, and click the blue Modded play button.
 * Optional: from the main menu, start a separate profile in the top right if you already have data in your default profile.
 * Optional: especially if you started a new profile from above, you will almost certainly want to run `meta.addAll` from the dev console, as the mod will assume you have all meta progression unlocked. The dev console is opened with \` (backtick, to the left of 1 on keyboards) by default, and at least for me only opens in the world map or settlements.
-  * If you run `meta.allAll` on a fresh profile, the Training Expedition will still appear locked. This is a bug in the game's UI. Just enter and leave the Smoldering Citadel, and you should now see the Training Expedition available.
+  * If you run `meta.addAll` on a fresh profile, the Training Expedition will still appear locked. This is a bug in the game's UI. Just enter and leave the Smoldering Citadel, and you should now see the Training Expedition available.
 2. From the world map, open the dev console (default \` (backtick, to the left of 1 on keyboards)) and type `ap.connect <url>:<port> "<slotName>" [password]`.
     * If you uploaded `AP_#######.zip` to archipelago, then the room you generated should have the url: `archipelago.gg:#####`
     * slotName is the name from the `AgainstTheStorm.yaml`. The default was `ATSPlayer` if you didn't change it. The quotes are only necessary if the name you set has spaces.

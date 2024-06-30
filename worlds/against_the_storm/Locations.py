@@ -3,6 +3,9 @@ from BaseClasses import Location
 class AgainstTheStormLocation(Location):
     game: str = "Against the Storm"
 
+# How to interpret these logic definitions:
+# To reach a location, you need at least one item from each string. For example:
+# ["A,B,C", "D,E"] means (A or B or C) and (D or E)
 location_dict = {
     "First Reputation through Resolve - Humans": ["Porridge,Biscuits,Pie,Coats", "Planks", "Bricks"],
     "First Reputation through Resolve - Beavers": ["Ale,Scrolls,Wine", "Planks", "Bricks", "Fabric"],
@@ -58,6 +61,5 @@ location_dict = {
     "Win with 30 Villagers in fully upgraded Housing - Beavers": ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire", "Pack of Building Materials", "Amber,Pack of Trade Goods"],
     "Win with 30 Villagers in fully upgraded Housing - Lizards": ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire", "Pack of Building Materials", "Jerky,Skewers"],
     "Win with 30 Villagers in fully upgraded Housing - Harpies": ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire", "Pack of Building Materials", "Pigment"],
-    # "Win with 30 Villagers in fully upgraded Housing - Foxes": []
     "Win with 30 Villagers in fully upgraded Housing - Foxes": ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire", "Pack of Building Materials", "Resin"],
 }
