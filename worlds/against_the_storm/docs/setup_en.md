@@ -76,4 +76,3 @@
         * The mod shouldn't be harmed by any world/daily modifiers, so feel free to add them if you want to spice up your run.
         * Below the map modifiers is where you will find the Prestige modifiers, which should be in the order you get them from climbing Prestige. (Note the missing P2, P11, and half of P1 modifiers, which are represented by the variables explained above)
 4. Click Embark.
-5. Lastly, you will probably want to be able to monitor which Locations you have checked, and which Items you have received. You can do that either from the tracker available in the room you generated on the archipelago website, or by opening the Archipelago Text Client which should have come with the Archipelago installation. Note that the website tracker can take a little while to update.
