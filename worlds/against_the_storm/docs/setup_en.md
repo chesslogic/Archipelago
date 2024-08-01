@@ -45,33 +45,35 @@
     * slotName is the name from the `AgainstTheStorm.yaml`. The default was `ATSPlayer` if you didn't change it. The quotes are only necessary if the name you set has spaces.
     * password is only necessary if you added a password to your yaml.
 3. In the game, start a settlement from the Training Expedition menu. (The mod should also work on any world settlements, you will just have more control over your game from the Training Expedition)
-* Optional: you will probably want to use the Templates option in the top left to set up your preferred Training Expedition only once. Note: all three of these columns can scroll!
-    * *Column 1*
-    * Don't forget to randomize your Seed each game! Or don't, I won't stop you.
-    * Also don't forget to choose your Biome and Species, if you're looking to check certain locations in particular.
-    * Feel free to choose any difficulty. The order locations only go up to slot #9, so you can still reach everything from Viceroy.
-    * Set your Reputation to 18.
-    * 4 minute Storm duration is found here under Reputation/Impatience, rather than as a Prestige modifier.
-    * *Column 2*
-    * Select 4 neighboring towns for a typical trade experience.
-    * Determine your embarkation goods. The default here is much more brutal than the usual embarkation. Here is what I tested with, designed as a mix of the base embarkation package, and some extra basic resources:
-        * 70 Wood
-        * 28 Coal
-        * 6 Wildfire Essence
-        * 28 Parts
-        * 14 Pipes
-        * 42 Eggs
-        * 28 Roots
-        * 28 Vegetables
-        * 28 Meat
-        * 28 Mushrooms
-        * 28 Insects
-        * 28 Berries
-        * 7 Planks
-        * 7 Fabric
-        * 7 Bricks
-    * *Column 3*
-    * The mod shouldn't be affected by any modifiers, so feel free to add them if you want to spice up your run.
-    * Below the map modifiers is where you will find the Prestige modifiers, which should roughly be in the order you get them from climbing Prestige. (Note the missing storm duration modifier, as mentioned above)
+    * Note: several of the defaults in this menu have been adjusted by the mod for your convenience. You may want to override/further customize these settings and save them to a template in the top left.
+        * *Column 1*
+        * Don't forget to randomize your Seed each game! Or don't, I won't stop you.
+        * Also don't forget to choose your Biome and Species, especially if you're looking to check certain locations in particular.
+        * Feel free to choose any difficulty. The order locations only go up to slot #9, so you can still reach everything from Viceroy.
+        * The mod overrides the default Reputation from 14 to 18, per half of Prestige 1.
+        * The mod overrides the default Storm duration from 2 to 4 minutes, per Prestige 2.
+        * The mod overrides the default Forest Mystery quantity to 1+/4- per Veteran+ difficulty.
+        * The mod overrides the default blightrot footprint from 100% to 200%, per Prestige 11.
+        * *Column 2*
+        * The mod defaults the first 4 towns to be selected.
+        * The mod defaults the embarkation goods to the following. This set is designed as a mix of the base embarkation package, and some extra basic resources:
+            * 70 Wood
+            * 28 Coal
+            * 6 Wildfire Essence
+            * 28 Parts
+            * 14 Pipes
+            * 42 Eggs
+            * 28 Roots
+            * 28 Vegetables
+            * 28 Meat
+            * 28 Mushrooms
+            * 28 Insects
+            * 28 Berries
+            * 7 Planks
+            * 7 Fabric
+            * 7 Bricks
+        * *Column 3*
+        * The mod shouldn't be harmed by any world/daily modifiers, so feel free to add them if you want to spice up your run.
+        * Below the map modifiers is where you will find the Prestige modifiers, which should be in the order you get them from climbing Prestige. (Note the missing P2, P11, and half of P1 modifiers, which are represented by the variables explained above)
 4. Click Embark.
 5. Lastly, you will probably want to be able to monitor which Locations you have checked, and which Items you have received. You can do that either from the tracker available in the room you generated on the archipelago website, or by opening the Archipelago Text Client which should have come with the Archipelago installation. Note that the website tracker can take a little while to update.
