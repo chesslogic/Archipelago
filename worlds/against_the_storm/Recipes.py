@@ -121,14 +121,15 @@ nonitem_blueprint_recipes = {
     'Rainpunk Foundry': {'Parts': 3, 'Wildfire Essence': 3},
 }
 
-def has_blueprint_for(state: CollectionState, player: int, blueprint_map: Dict[str, Dict[str, int]], good: str) -> bool:
+def has_blueprint_for(state: CollectionState, player: int, blueprint_map: Dict[str, Dict[str, int]] | None, good: str) -> bool:
     # blueprint_items are off, meaning we don't need to worry about access to a building that craft this good
     if blueprint_map == None:
         return True
 
     # These goods can be obtained through means that don't require a blueprint item
     if good in ["Berries", "Eggs", "Insects", "Meat", "Mushrooms", "Roots", "Vegetables", "Clay", "Copper Ore", "Grain",
-                "Herbs", "Leather", "Plant Fiber", "Reeds", "Resin", "Stone", "Amber", "Purging Fire", "Sea Marrow"]:
+                "Herbs", "Leather", "Plant Fiber", "Reeds", "Resin", "Stone", "Amber", "Purging Fire", "Sea Marrow",
+                "Parts", "Ancient Tablet"]:
         return True
     
     # We should check if we have a service building for service goods, as most checks for them are locations about consuming them
@@ -139,16 +140,18 @@ def has_blueprint_for(state: CollectionState, player: int, blueprint_map: Dict[s
     # Find a blueprint that has the item in the blueprint_map, which will have options like recipe_shuffle baked in
     return len([bp for bp in blueprint_map.keys() if good in chain.from_iterable(blueprint_map[bp]) and (bp in ["Crude Workstation", "Field Kitchen", "Makeshift Post"] or state.has(bp, player))]) > 0
 
-def satisfies_recipe(state: CollectionState, player: int, blueprint_map: Dict[str, Dict[str, int]], recipe: list[str]) -> bool:
+def satisfies_recipe(state: CollectionState, player: int, blueprint_map: Dict[str, Dict[str, int]] | None, recipe: list[str], debug = False) -> bool:
     # recipe is of the form ["A,B,C", "D,E"] meaning (A or B or C) and (D or E)
     for item_set in recipe:
         # Break when we can craft one of the items in the column, satisfying it. If we can't satisfy the column, then we can't satisfy `recipe`
         for item in item_set.split(","):
+            if debug:
+                print(item, has_blueprint_for(state, player, blueprint_map, item))
+            
             if not item in item_dict.keys():
                 print(f"[ATS] WARNING: Logical requirement for unknown item: {item}")
             # We only truly "state.has" an item if we have the production chain that can craft it
-            # print(item, has_blueprint_for(state, player, blueprint_map, item))
-            if state.has(item, player) and has_blueprint_for(state, player, blueprint_map, item) and (item not in game_recipes or satisfies_recipe(state, player, blueprint_map, game_recipes[item])):
+            if state.has(item, player) and has_blueprint_for(state, player, blueprint_map, item) and (item not in game_recipes or satisfies_recipe(state, player, blueprint_map, game_recipes[item]), debug):
                 break
         else:
             return False
