@@ -46,7 +46,7 @@ class Version(typing.NamedTuple):
         return ".".join(str(item) for item in self)
 
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 version_tuple = tuplize_version(__version__)
 
 is_linux = sys.platform.startswith("linux")
@@ -553,6 +553,7 @@ def init_logging(name: str, loglevel: typing.Union[str, int] = logging.INFO, wri
         f"Archipelago ({__version__}) logging initialized"
         f" on {platform.platform()}"
         f" running Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        f"{' (frozen)' if is_frozen() else ''}"
     )
 
 
