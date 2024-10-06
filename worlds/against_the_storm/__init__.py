@@ -52,16 +52,18 @@ class AgainstTheStormWorld(World):
         return True
 
     def generate_early(self):
-        # There are 64 `basic` locations
-        self.total_location_count = 64 + self.options.reputation_locations_per_biome.value * 6 + self.options.extra_trade_locations.value
-        # There are 57 `good` items
-        total_item_count = 57 + (59 if self.options.blueprint_items else 0) + (4 if self.options.seal_items else 0)
+        base_locations = [name for (name, (classification, _logic)) in location_dict.items() if classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
+        self.total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (7 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value
+        total_item_count = len([name for (name, (_class, classification)) in item_dict.items() if
+                                classification == ATSItemClassification.good or
+                                classification == ATSItemClassification.guardian_part and self.options.seal_items or
+                                classification == ATSItemClassification.blueprint and self.options.blueprint_items or
+                                classification == ATSItemClassification.dlc_blueprint and self.options.enable_dlc])
         if self.total_location_count < total_item_count:
             while self.total_location_count < total_item_count:
                 self.options.reputation_locations_per_biome.value += 1
-                self.total_location_count = 64 + self.options.reputation_locations_per_biome.value * 6 + self.options.extra_trade_locations.value
-            logging.warning(f"[Against the Storm] Fewer locations than items detected in options, increasing \
-                reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
+                self.total_location_count += 7 if self.options.enable_dlc else 6
+            logging.warning(f"[Against the Storm] Fewer locations than items detected in options, increased reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
         
         self.included_location_indices.append(1)
         # This evenly spreads the option's number of locations between 2 and 17
@@ -103,17 +105,21 @@ class AgainstTheStormWorld(World):
     def create_items(self) -> None:
         itempool = []
         filler_items = []
-        # TODO switch on enum
-        for item_key, item_value in item_dict.items():
-            if item_value[1] == ATSItemClassification.filler:
-                filler_items.append(item_key)
-                continue
-            if item_value[1] == ATSItemClassification.blueprint and not self.options.blueprint_items.value:
-                continue
-            if item_value[1] == ATSItemClassification.guardian_part and not self.options.seal_items.value:
-                continue
-            # ATSItemClassification.good
-            itempool.append(item_key)
+        for item_key, (_ap_classification, classification) in item_dict.items():
+            match classification:
+                case ATSItemClassification.good:
+                    itempool.append(item_key)
+                case ATSItemClassification.blueprint:
+                    if self.options.blueprint_items:
+                        itempool.append(item_key)
+                case ATSItemClassification.filler:
+                    filler_items.append(item_key)
+                case ATSItemClassification.guardian_part:
+                    if self.options.seal_items:
+                        itempool.append(item_key)
+                case ATSItemClassification.dlc_blueprint:
+                    if self.options.enable_dlc and self.options.blueprint_items:
+                        itempool.append(item_key)
         
         # Fill remaining itempool space with filler
         while len(itempool) + len(filler_items) < self.total_location_count:
@@ -125,26 +131,33 @@ class AgainstTheStormWorld(World):
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
         self.multiworld.regions.append(menu_region)
-
-        main_region = Region("Main", self.player, self.multiworld)
-        # TODO just iterate over location_dict instead, since name_to_id is constructed from it
-        # TODO switch on enum
+        
         trade_locations = []
-        for loc_key, loc_value in self.location_name_to_id.items():
-            if location_dict[loc_key][0] == ATSLocationClassification.extra_trade:
-                trade_locations.append(loc_key)
-                continue
-            if location_dict[loc_key][0] == ATSLocationClassification.biome_rep:
-                loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", loc_key).group(1))
-                if loc_index in self.included_location_indices:
-                    self.location_pool[loc_key] = loc_value
-                continue
-            if location_dict[loc_key][0] == ATSLocationClassification.basic:
-                self.location_pool[loc_key] = loc_value
-                continue
+        for name, (classification, logic) in location_dict.items():
+            match classification:
+                case ATSLocationClassification.basic:
+                    self.location_pool[name] = self.location_name_to_id[name]
+                case ATSLocationClassification.biome_rep:
+                    loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
+                    if loc_index in self.included_location_indices:
+                        self.location_pool[name] = self.location_name_to_id[name]
+                case ATSLocationClassification.extra_trade:
+                    trade_locations.append(name)
+                case ATSLocationClassification.dlc:
+                    if self.options.enable_dlc:
+                        self.location_pool[name] = self.location_name_to_id[name]
+                case ATSLocationClassification.dlc_biome_rep:
+                    if self.options.enable_dlc:
+                        loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
+                        if loc_index in self.included_location_indices:
+                            self.location_pool[name] = self.location_name_to_id[name]
+        
         trade_locations = sample(trade_locations, self.options.extra_trade_locations.value)
         for location in trade_locations:
             self.location_pool[location] = self.location_name_to_id[location]
+
+        main_region = Region("Main", self.player, self.multiworld)
+            
         main_region.add_locations(self.location_pool, AgainstTheStormLocation)
         self.multiworld.regions.append(main_region)
 
@@ -156,14 +169,14 @@ class AgainstTheStormWorld(World):
         
         if self.options.required_seal_tasks.value > 1:
             return satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None,
-                ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea',
+                ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea',
                  'Coal,Oil,Sea Marrow', 'Amber', 'Tools', 'Purging Fire', 'Planks', 'Bricks', 'Fabric',
                  # Above is the baseline that ensures normal winnable conditions, below ensures every Seal task
                  'Pack of Crops', 'Pack of Provisions', 'Pack of Building Materials', 'Stone,Sea Marrow,Training Gear',
                  'Pipes', 'Parts', 'Ancient Tablet'])
         else:
             return satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None,
-                ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea',
+                ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea',
                  'Coal,Oil,Sea Marrow', 'Amber', 'Tools', 'Purging Fire', 'Planks', 'Bricks', 'Fabric'])
     
     def set_rules(self) -> None:
@@ -182,6 +195,7 @@ class AgainstTheStormWorld(World):
             "continue_blueprints_for_reputation": self.options.continue_blueprints_for_reputation.value,
             "seal_items": self.options.seal_items.value,
             "required_seal_tasks": self.options.required_seal_tasks.value,
+            "enable_dlc": self.options.enable_dlc.value,
             "rep_location_indices": self.included_location_indices,
             "production_recipes": self.production_recipes
         }

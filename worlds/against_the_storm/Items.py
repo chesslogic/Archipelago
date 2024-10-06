@@ -10,6 +10,7 @@ class ATSItemClassification(Enum):
     blueprint = 2
     filler = 3
     guardian_part = 4
+    dlc_blueprint = 5
 
 item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification]] = {
     "Guardian Heart": (ItemClassification.progression, ATSItemClassification.guardian_part),
@@ -24,13 +25,16 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification]] = {
     "Mushrooms": (ItemClassification.progression, ATSItemClassification.good),
     "Roots": (ItemClassification.progression, ATSItemClassification.good),
     "Vegetables": (ItemClassification.progression, ATSItemClassification.good),
+    "Fish": (ItemClassification.progression, ATSItemClassification.good),
     "Biscuits": (ItemClassification.progression, ATSItemClassification.good),
     "Jerky": (ItemClassification.progression, ATSItemClassification.good),
     "Pickled Goods": (ItemClassification.progression, ATSItemClassification.good),
     "Pie": (ItemClassification.progression, ATSItemClassification.good),
     "Porridge": (ItemClassification.progression, ATSItemClassification.good),
     "Skewers": (ItemClassification.progression, ATSItemClassification.good),
+    "Paste": (ItemClassification.progression, ATSItemClassification.good),
     "Coats": (ItemClassification.progression, ATSItemClassification.good),
+    "Boots": (ItemClassification.progression, ATSItemClassification.good),
     "Bricks": (ItemClassification.progression, ATSItemClassification.good),
     "Fabric": (ItemClassification.progression, ATSItemClassification.good),
     "Planks": (ItemClassification.progression, ATSItemClassification.good),
@@ -45,18 +49,20 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification]] = {
     "Wine": (ItemClassification.progression, ATSItemClassification.good),
     "Clay": (ItemClassification.progression, ATSItemClassification.good),
     "Copper Ore": (ItemClassification.progression, ATSItemClassification.good),
+    "Scales": (ItemClassification.progression, ATSItemClassification.good),
     "Crystallized Dew": (ItemClassification.progression, ATSItemClassification.good),
     "Grain": (ItemClassification.progression, ATSItemClassification.good),
     "Herbs": (ItemClassification.progression, ATSItemClassification.good),
     "Leather": (ItemClassification.progression, ATSItemClassification.good),
     "Plant Fiber": (ItemClassification.progression, ATSItemClassification.good),
+    "Algae": (ItemClassification.progression, ATSItemClassification.good),
     "Reeds": (ItemClassification.progression, ATSItemClassification.good),
     "Resin": (ItemClassification.progression, ATSItemClassification.good),
     "Stone": (ItemClassification.progression, ATSItemClassification.good),
     "Barrels": (ItemClassification.progression, ATSItemClassification.good),
     "Copper Bars": (ItemClassification.progression, ATSItemClassification.good),
     "Flour": (ItemClassification.progression, ATSItemClassification.good),
-    "Pigment": (ItemClassification.progression, ATSItemClassification.good),
+    "Dye": (ItemClassification.progression, ATSItemClassification.good),
     "Pottery": (ItemClassification.progression, ATSItemClassification.good),
     "Waterskins": (ItemClassification.progression, ATSItemClassification.good),
     "Amber": (ItemClassification.progression, ATSItemClassification.good),
@@ -92,6 +98,7 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification]] = {
     "Forager's Camp": (ItemClassification.useful, ATSItemClassification.blueprint),
     "Herbalist's Camp": (ItemClassification.useful, ATSItemClassification.blueprint),
     "Trapper's Camp": (ItemClassification.useful, ATSItemClassification.blueprint),
+    "Fishing Hut": (ItemClassification.useful, ATSItemClassification.blueprint),
     "Clay Pit": (ItemClassification.useful, ATSItemClassification.blueprint),
     "Forester's Hut": (ItemClassification.useful, ATSItemClassification.blueprint),
     "Greenhouse": (ItemClassification.useful, ATSItemClassification.blueprint),
@@ -138,15 +145,20 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification]] = {
     "Toolshop": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Weaver": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Workshop": (ItemClassification.progression, ATSItemClassification.blueprint),
+    "Cobbler": (ItemClassification.progression, ATSItemClassification.blueprint),
+    
+    "Pantry": (ItemClassification.progression, ATSItemClassification.dlc_blueprint),
+    "Cannery": (ItemClassification.progression, ATSItemClassification.dlc_blueprint),
     
     "Bath House": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Clan Hall": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Explorers Lodge": (ItemClassification.progression, ATSItemClassification.blueprint),
-    "Forum": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Guild House": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Market": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Monastery": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Tavern": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Tea Doctor": (ItemClassification.progression, ATSItemClassification.blueprint),
     "Temple": (ItemClassification.progression, ATSItemClassification.blueprint),
+    
+    "Forum": (ItemClassification.progression, ATSItemClassification.dlc_blueprint),
 }

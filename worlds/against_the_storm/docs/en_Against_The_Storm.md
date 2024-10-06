@@ -8,7 +8,7 @@ Optionally, all production recipes can be shuffled.
 ## What Against The Storm items are randomized?
 "Items" in this case are the ability to acquire the blocked resources. 
 The exceptions to this are you can always gather Wood and Water, and you will always receive resources from embarkation and deconstruction.
-In addition, blueprints can be shuffled as well, and will be added as core bluperints for every settlement once received from the multiworld.
+In addition, blueprints can be shuffled as well, and will be added as essential bluperints for every settlement once received from the multiworld.
 
 ## What do Locations look like in Against the Storm?
 Locations are essentially just a list of custom deeds designed to cover many aspects of the game. Here is an overview of them:
@@ -22,7 +22,7 @@ Locations are essentially just a list of custom deeds designed to cover many asp
     * Achieve a victory in each biome
 * Trade
     * *These work by turning in the given resources to a custom neighbor found in the trade route menu*
-        * 10, 100, and 1000 Amber
+        * 5, 50, and 500 Amber
         * 20 of each of the packs
         * 200 of each of the waters
         * A configurable number of addition random resources
@@ -32,7 +32,6 @@ Locations are essentially just a list of custom deeds designed to cover many asp
     * Upgrade a hearth to each tier
     * Complete a Dangerous & Forbidden glade event
     * Complete a glade event of each decision type
-    * Reach levels of standing with trade neighbors
 
 ## What is the goal of this game when randomized?
 To gather the guardian parts and reforge a seal in the sealed forest. Note: you can play the sealed forest from the Training Expedition as well!

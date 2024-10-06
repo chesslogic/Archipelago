@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Options import Choice, Toggle, Range, PerGameCommonOptions
+from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle
 
 class RecipeShuffle(Choice):
     """Enable production building recipe shuffle. Will maintain the number of recipes available for goods and buildings. This includes glade events as well, such as the flawless buildings! Can skip Crude WS for less frustrating seeds."""
@@ -18,14 +18,14 @@ class Deathlink(Choice):
     default = 0
 
 class BlueprintItems(Toggle):
-    """Blueprints are no longer drafted through Reputation like in Vanilla. Instead, they are found as items, granting them as essential blueprints."""
+    """Blueprints are no longer drafted through Reputation like in Vanilla. Instead, they are found as items, granting them as essential blueprints. This will make the start of a multiworld quite a bit harder, but the end quite a bit easier."""
     display_name = "Blueprint Items"
 
 class ContinueBlueprintsForReputation(Toggle):
     """Continue to offer blueprint selections as rewards for reputation, even with Blueprint Items on."""
     display_name = "Continue Blueprints For Reputation"
 
-class SealItems(Toggle):
+class SealItems(DefaultOnToggle):
     """Shuffle 4 Seal related items. You will not be able to complete a stage of the Seal until receiving the relevant item."""
     display_name = "Seal Items"
 
@@ -35,20 +35,27 @@ class RequiredSealTasks(Range):
     default = 1
     range_start = 1
     range_end = 3
+    
+class EnableDLC(Toggle):
+    """Enable DLC related locations, such as Frog resolve and Coastal Grove reputation."""
+    display_name = "Enable DLC"
 
 class ReputationLocationsPerBiome(Range):
-    """Set the number of locations spread between the 1st and 18th reputation in each biome. This option will be increased before generation with a warning when Blueprint Items is on to ensure enough locations."""
+    """Set the number of locations spread between the 1st and 18th reputation in each biome. For example, a setting of 1
+    will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put locations at the 1st, 4th,
+    8th, 11th, 15th, and 18th rep.
+    This option will be increased before generation with a warning when Blueprint Items is on to ensure enough locations."""
     display_name = "Reputation Locations Per Biome"
-    default = 1
+    default = 3
     range_start = 1
     range_end = 16
 
 class ExtraTradeLocations(Range):
-    """Set the number of goods that will be chosen as additional trade locations."""
+    """Set the number of extra goods that will be chosen as trade route locations."""
     display_name = "Extra Trade Locations"
-    default = 0
+    default = 5
     range_start = 0
-    range_end = 46
+    range_end = 51
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
@@ -58,5 +65,6 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     continue_blueprints_for_reputation: ContinueBlueprintsForReputation
     seal_items: SealItems
     required_seal_tasks: RequiredSealTasks
+    enable_dlc: EnableDLC
     reputation_locations_per_biome: ReputationLocationsPerBiome
     extra_trade_locations: ExtraTradeLocations

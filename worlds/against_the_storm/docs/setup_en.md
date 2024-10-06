@@ -4,7 +4,7 @@
 * Latest release of [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases). Currently tested/working on version 0.5.0.
 * [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager). (While a mod manager is not technically required, this guide will walk through using it to set up the mod)
 * The `against_the_storm.apworld` from the latest [Against The Storm for Archipelago](https://github.com/RyanCirincione/ArchipelagoATS/releases) release.
-* A legal copy of Against the Storm (working as of v1.3.4).
+* A legal copy of Against the Storm (tested as of v1.4.15, optionally including the Keepers of the Stone DLC).
    * Only tested on Steam version.
 
 ## Installing the Archipelago Mod to Against the Storm
@@ -26,13 +26,11 @@
 2. Put the `against_the_storm.apworld` file in the `/Archipelago/lib/worlds` folder where you installed Archipelago.
 3. Edit the `AgainstTheStorm.yaml`.
     1. Don't worry too much about the `name` if you're just trying this out on your own. The slot name would be more relevant if you are playing an Archipelago Multiworld.
-    2. The `deathlink` options are `off`, `death_only`, and `leave_and_death`. Again, don't worry about this if you're unfamiliar with Archipelago, the default is fine.
-    3. The `recipe_shuffle` options are `vanilla`, `exclude_crude_ws`, and `full_shuffle`. The non-vanilla options will rearrange all production recipes in the game!
-    4. If you set `blueprint_items` to `true`, then instead of drafting blueprints through the typical reputation reward, you will instead receive blueprints as items from Archipelago.
-    5. `reputation_locations_per_biome` determines the number of locations spread across the reputation track in each biome. The higher the number, the more bonus resources there will be.
+    2. For the other options, read the comments and update them as you wish. The defaults should be fine if all these options are confusing.
+    3. The one option you may want to pay attention to is `enable_dlc`, if you have Keepers of the Stone and want to include its locations, make sure to flip that to `true`!
 4. Place the edited `AgainstTheStorm.yaml` in the `/Archipelago/Players` folder.
 5. Run `ArchipelagoGenerate.exe` from the `/Archipelago` folder.
-6. Upload the `AP_#######.zip` file from `/Archipelago/output` to [Archipelago website](https://archipelago.gg/uploads) to host the game.
+6. Upload the `AP_#######.zip` file from `/Archipelago/output` to [the Archipelago website](https://archipelago.gg/uploads) to host the game.
 
 ## Joining an Archipelago Game in Against The Storm
 * Optional: backup your save files located in `%userprofile%\AppData\LocalLow\Eremite Games\Against the Storm`
@@ -53,7 +51,7 @@
         * The mod overrides the default Reputation from 14 to 18, per half of Prestige 1.
         * The mod overrides the default Storm duration from 2 to 4 minutes, per Prestige 2.
         * The mod overrides the default Forest Mystery quantity to 1+/4- per Veteran+ difficulty.
-        * The mod overrides the default blightrot footprint from 100% to 200%, per Prestige 11.
+        * The mod overrides the default blightrot footprint from 100% to 200%, per half of Prestige 11.
         * *Column 2*
         * The mod defaults the first 4 towns to be selected.
         * The mod defaults the embarkation goods to the following. This set is designed as a mix of the base embarkation package, and some extra basic resources:
@@ -69,6 +67,7 @@
             * 28 Mushrooms
             * 28 Insects
             * 28 Berries
+            * 28 Fish
             * 8 Planks
             * 8 Fabric
             * 8 Bricks
