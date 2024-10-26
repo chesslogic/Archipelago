@@ -5,7 +5,7 @@
 * [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager). (While a mod manager is not technically required, this guide will walk through using it to set up the mod)
 * The `against_the_storm.apworld` from the latest [Against The Storm for Archipelago](https://github.com/RyanCirincione/ArchipelagoATS/releases) release.
 * A legal copy of Against the Storm (tested as of v1.4.15, optionally including the Keepers of the Stone DLC).
-   * Only tested on Steam version.
+    * Only tested on Steam version.
 
 ## Installing the Archipelago Mod to Against the Storm
 1. Open the Thunderstore Mod Manager.
@@ -35,15 +35,17 @@
 ## Joining an Archipelago Game in Against The Storm
 * Optional: backup your save files located in `%userprofile%\AppData\LocalLow\Eremite Games\Against the Storm`
 1. Go to Thunderstore Mod Manager, open your Against the Storm profile with the Against the Storm for Archipelago mod, and click the blue Modded play button.
-* Optional: from the main menu, start a separate profile in the top right if you already have data in your default profile.
-* Optional: especially if you started a new profile from above, you will almost certainly want to run `meta.addAll` from the dev console, as the mod will assume you have all meta progression unlocked, and probably `goals.unlockAll` as well (these are the deeds, which have things like certain traders, decorations, and Big Shelter. **WARNING**: goals.unlockAll will grant you all the steam achievements). The dev console is opened with \` (backtick, to the left of 1 on keyboards) by default, and at least for me only opens in the world map or settlements.
-  * If you run `meta.addAll` on a fresh profile, the Training Expedition will still appear locked. This is a bug in the game's UI. Just enter and leave the Smoldering Citadel, and you should now see the Training Expedition available.
+    * Optional: from the main menu, start a separate profile in the top right if you already have data in your default profile.
+    * Optional: especially if you started a new profile from above, you will almost certainly want to run `meta.addAll` from the dev console, as the mod will assume you have all meta progression unlocked, and probably `goals.unlockAll` as well (these are the deeds, which have things like certain traders, decorations, and Big Shelter. **WARNING**: goals.unlockAll will grant you all the steam achievements). The dev console is opened with \` (backtick, to the left of 1 on keyboards) by default, and at least for me only opens in the world map or settlements.
+        * If you run `meta.addAll` on a fresh profile, the Training Expedition will still appear locked. This is a bug in the game's UI. Just enter and leave the Smoldering Citadel, and you should now see the Training Expedition available.
 2. From the world map, open the dev console (default \` (backtick, to the left of 1 on keyboards)) and type `ap.connect <url>:<port> "<slotName>" [password]`.
     * If you uploaded `AP_#######.zip` to archipelago, then the room you generated should have the url: `archipelago.gg:#####`
     * slotName is the name from the `AgainstTheStorm.yaml`. The default was `ATSPlayer` if you didn't change it. The quotes are only necessary if the name you set has spaces.
     * password is only necessary if you added a password to your yaml.
 3. In the game, start a settlement from the Training Expedition menu. (The mod should also work on any world settlements, you will just have more control over your game from the Training Expedition)
     * Note: several of the defaults in this menu have been adjusted by the mod for your convenience. You may want to override/further customize these settings and save them to a template in the top left.
+    <details>
+    <summary>List of Training Expedition changes:</summary>
         * *Column 1*
         * Don't forget to randomize your Seed each game! Or don't, I won't stop you.
         * Also don't forget to choose your Biome and Species, especially if you're looking to check certain locations in particular.
@@ -74,4 +76,5 @@
         * *Column 3*
         * The mod shouldn't be harmed by any world/daily modifiers, so feel free to add them if you want to spice up your run.
         * Below the map modifiers is where you will find the Prestige modifiers, which should be in the order you get them from climbing Prestige. (Note the missing P2, P11, and half of P1 modifiers, which are represented by the variables explained above)
+    </details>
 4. Click Embark.
