@@ -44,8 +44,8 @@
     * password is only necessary if you added a password to your yaml.
 3. In the game, start a settlement from the Training Expedition menu. (The mod should also work on any world settlements, you will just have more control over your game from the Training Expedition)
     * Note: several of the defaults in this menu have been adjusted by the mod for your convenience. You may want to override/further customize these settings and save them to a template in the top left.
-    <details>
-    <summary>List of Training Expedition changes:</summary>
+        <details>
+        <summary>List of Training Expedition changes:</summary>
         * *Column 1*
         * Don't forget to randomize your Seed each game! Or don't, I won't stop you.
         * Also don't forget to choose your Biome and Species, especially if you're looking to check certain locations in particular.
@@ -76,5 +76,5 @@
         * *Column 3*
         * The mod shouldn't be harmed by any world/daily modifiers, so feel free to add them if you want to spice up your run.
         * Below the map modifiers is where you will find the Prestige modifiers, which should be in the order you get them from climbing Prestige. (Note the missing P2, P11, and half of P1 modifiers, which are represented by the variables explained above)
-    </details>
+        </details>
 4. Click Embark.
