@@ -4,7 +4,7 @@
 * Latest release of [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases). Currently tested/working on version 0.5.0.
 * [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager). (While a mod manager is not technically required, this guide will walk through using it to set up the mod)
 * The `against_the_storm.apworld` from the latest [Against The Storm for Archipelago](https://github.com/RyanCirincione/ArchipelagoATS/releases) release.
-* A legal copy of Against the Storm (tested as of v1.4.15, optionally including the Keepers of the Stone DLC).
+* A legal copy of Against the Storm (tested as of v1.4.17, optionally including the Keepers of the Stone DLC).
     * Only tested on Steam version.
 
 ## Installing the Archipelago Mod to Against the Storm
@@ -68,9 +68,9 @@
             * 28 Insects
             * 28 Berries
             * 28 Fish
-            * 8 Planks
-            * 8 Fabric
-            * 8 Bricks
+            * 7 Planks
+            * 7 Fabric
+            * 7 Bricks
         * *Column 3*
         * The mod shouldn't be harmed by any world/daily modifiers, so feel free to add them if you want to spice up your run.
         * Below the map modifiers is where you will find the Prestige modifiers, which should be in the order you get them from climbing Prestige. (Note the missing P2, P11, and half of P1 modifiers, which are represented by the variables explained above)

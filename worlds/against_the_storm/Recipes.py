@@ -16,7 +16,7 @@ game_recipes = {
     'Coats': ['Fabric,Leather', 'Dye,Resin'],
     'Boots': ['Leather,Scales'],
     'Bricks': ['Clay,Stone'],
-    'Fabric': ['Leather,Plant Fiber,Reeds,Algae'],
+    'Fabric': ['Plant Fiber,Reeds,Algae'],
     'Pipes': ['Copper Bars,Crystallized Dew'],
     'Ale': ['Grain,Roots', 'Barrels,Pottery,Waterskins'],
     'Incense': ['Herbs,Insects,Resin,Roots,Scales'],

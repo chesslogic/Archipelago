@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle
+from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle, StartInventoryPool
 
 class RecipeShuffle(Choice):
-    """Enable production building recipe shuffle. Will maintain the number of recipes available for goods and buildings. This includes glade events as well, such as the flawless buildings! Can skip Crude WS for less frustrating seeds."""
+    """Enable production building recipe shuffle. Will maintain the number of recipes available for goods and buildings. This includes glade events as well, such as the flawless buildings! Can skip Crude Workstation and/or Makeshift Post for less frustrating seeds."""
     display_name = "Recipe Shuffle"
     option_vanilla = 0
-    option_exclude_crude_ws = 1
-    option_full_shuffle = 2
+    option_exclude_crude_ws_and_ms_post = 1
+    option_exclude_crude_ws = 2
+    option_exclude_ms_post = 3
+    option_full_shuffle = 4
     default = 0
 
 class Deathlink(Choice):
@@ -39,6 +41,13 @@ class RequiredSealTasks(Range):
 class EnableDLC(Toggle):
     """Enable DLC related locations, such as Frog resolve and Coastal Grove reputation."""
     display_name = "Enable DLC"
+    
+class GroveExpeditionLocations(Range):
+    """Number of locations to place in the Coastal Grove's Strider Port. Will be ignored if DLC is off."""
+    display_name = "Coastal Grove Expedition Locations"
+    default = 0
+    range_start = 4
+    range_end = 20
 
 class ReputationLocationsPerBiome(Range):
     """Set the number of locations spread between the 1st and 18th reputation in each biome. For example, a setting of 1
@@ -59,6 +68,7 @@ class ExtraTradeLocations(Range):
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
+    start_inventory_from_pool: StartInventoryPool
     recipe_shuffle: RecipeShuffle
     deathlink: Deathlink
     blueprint_items: BlueprintItems
@@ -66,5 +76,6 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     seal_items: SealItems
     required_seal_tasks: RequiredSealTasks
     enable_dlc: EnableDLC
+    grove_expedition_locations: GroveExpeditionLocations
     reputation_locations_per_biome: ReputationLocationsPerBiome
     extra_trade_locations: ExtraTradeLocations

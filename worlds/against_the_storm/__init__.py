@@ -28,6 +28,7 @@ class AgainstTheStormWorld(World):
     included_location_indices: list[int] = []
     location_pool: Dict[str, int] = {}
     production_recipes: Dict[str, List[List]] = {}
+    filler_items: List[str] = []
     
     def are_recipes_beatable(self, production_recipes: Dict[str, List[List]]):
         glade_blueprints = [bp for bp in nonitem_blueprint_recipes if
@@ -77,15 +78,19 @@ class AgainstTheStormWorld(World):
         all_production.update(blueprint_recipes)
         all_production.update(nonitem_blueprint_recipes)
         if self.options.recipe_shuffle.value != "vanilla":
+            skipCWS = self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws or \
+                self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws_and_ms_post
+            skipMSP = self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_ms_post or \
+                self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws_and_ms_post
             while True: # Break at the bottom when `are_recipes_beatable`
                 all_recipes: List[Tuple[str, int]] = []
                 for blueprint, recipes in all_production.items():
-                    if blueprint == "Crude Workstation" and self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws:
+                    if blueprint == "Crude Workstation" and skipCWS or blueprint == "Makeshift Post" and skipMSP:
                         continue
                     for good, star_level in recipes.items():
                         all_recipes.append((good, star_level))
                 for blueprint, recipes in all_production.items():
-                    if blueprint == "Crude Workstation" and self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws:
+                    if blueprint == "Crude Workstation" and skipCWS or blueprint == "Makeshift Post" and skipMSP:
                         self.production_recipes[blueprint] = list(map(list, recipes.items()))
                         continue
                     recipe_set: List[List] = []
@@ -98,13 +103,17 @@ class AgainstTheStormWorld(World):
                     break
         else:
             self.production_recipes = { key:[[item, num] for item,num in value.items()] for key,value in all_production.items() if not isinstance(value, str) }
+            
+    def get_filler_item_name(self):
+        choice = self.multiworld.random.choices(self.filler_items)[0]
+        # Reroll Survivor Bonding, effectively halving its occurence
+        return self.multiworld.random.choices(self.filler_items)[0] if choice == "Survivor Bonding" and self.multiworld.random.random() < 0.5 else choice
 
     def create_item(self, item: str) -> AgainstTheStormItem:
         return AgainstTheStormItem(item, item_dict.get(item)[0], self.item_name_to_id[item], self.player)
 
     def create_items(self) -> None:
         itempool = []
-        filler_items = []
         for item_key, (_ap_classification, classification) in item_dict.items():
             match classification:
                 case ATSItemClassification.good:
@@ -113,7 +122,7 @@ class AgainstTheStormWorld(World):
                     if self.options.blueprint_items:
                         itempool.append(item_key)
                 case ATSItemClassification.filler:
-                    filler_items.append(item_key)
+                    self.filler_items.append(item_key)
                 case ATSItemClassification.guardian_part:
                     if self.options.seal_items:
                         itempool.append(item_key)
@@ -122,9 +131,8 @@ class AgainstTheStormWorld(World):
                         itempool.append(item_key)
         
         # Fill remaining itempool space with filler
-        while len(itempool) + len(filler_items) < self.total_location_count:
-            itempool += filler_items
-        itempool += sample(filler_items, self.total_location_count - len(itempool))
+        while len(itempool) < self.total_location_count:
+            itempool += [self.create_filler().name]
         
         self.multiworld.itempool += map(self.create_item, itempool)
 
@@ -150,6 +158,11 @@ class AgainstTheStormWorld(World):
                     if self.options.enable_dlc:
                         loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
                         if loc_index in self.included_location_indices:
+                            self.location_pool[name] = self.location_name_to_id[name]
+                case ATSLocationClassification.dlc_grove_expedition:
+                    if self.options.enable_dlc:
+                        expedition_index = int(re.search(r"^Coastal Grove - (\d\d?)\w\w Expedition$", name).group(1))
+                        if expedition_index <= self.options.grove_expedition_locations:
                             self.location_pool[name] = self.location_name_to_id[name]
         
         trade_locations = sample(trade_locations, self.options.extra_trade_locations.value)
@@ -179,13 +192,24 @@ class AgainstTheStormWorld(World):
                 ['Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste', 'Ale,Training Gear,Incense,Scrolls,Wine,Tea',
                  'Coal,Oil,Sea Marrow', 'Amber', 'Tools', 'Purging Fire', 'Planks', 'Bricks', 'Fabric'])
     
+    def check_other_location_rules(self, location: str, state: CollectionState, player: int):
+        if location == "The Marshlands - Harvest from an Ancient Proto Wheat":
+            return state.has("Forager's Camp", player)
+        elif location == "The Marshlands - Harvest from a Dead Leviathan":
+            return state.has("Trapper's Camp", player)
+        elif location == "The Marshlands - Harvest from a Giant Proto Fungus":
+            return state.has("Herbalist's Camp", player)
+        
+        return True
+    
     def set_rules(self) -> None:
         self.multiworld.completion_condition[self.player] = lambda state: self.can_goal(state)
         for location, loc_data in location_dict.items():
             if location not in self.location_pool.keys():
                 continue
             set_rule(self.multiworld.get_location(location, self.player),
-                     lambda state, logic=loc_data[1]: satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None, logic))
+                     lambda state, logic=loc_data[1]: self.check_other_location_rules(location, state, self.player) and \
+                        satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None, logic))
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {

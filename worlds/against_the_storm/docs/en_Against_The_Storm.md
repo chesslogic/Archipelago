@@ -20,6 +20,10 @@ Locations are essentially just a list of custom deeds designed to cover many asp
 * Biomes
     * Earn a configurable amount of Reputation for each biome
     * Achieve a victory in each biome
+    * Calm Cursed Royal Woodlands ghosts
+    * Harvest from the giant nodes in The Marshlands
+    * Do the archeological reconstructions in Scarlet Orchard
+    * Go on expeditions in Coastal Grove
 * Trade
     * *These work by turning in the given resources to a custom neighbor found in the trade route menu*
         * 5, 50, and 500 Amber
@@ -36,7 +40,6 @@ Locations are essentially just a list of custom deeds designed to cover many asp
 ## What is the goal of this game when randomized?
 To gather the guardian parts and reforge a seal in the sealed forest. Note: you can play the sealed forest from the Training Expedition as well!
 
-## Known Issues as of v0.5.0
-* If a filler item is received while disconnected in the middle of the settlement, the filler won't be received until the start of the next settlement.
+## Known Issues as of v0.7.0
 * The trade related locations, because they are handled by trade routes, proc trade route related in game effects.
 * With `blueprint_items` on, the reputation blueprint reward button doesn't correctly disable if you connect during a run. When your reward changes, it should correct itself.
