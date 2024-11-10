@@ -45,8 +45,8 @@ class EnableDLC(Toggle):
 class GroveExpeditionLocations(Range):
     """Number of locations to place in the Coastal Grove's Strider Port. Will be ignored if DLC is off."""
     display_name = "Coastal Grove Expedition Locations"
-    default = 0
-    range_start = 4
+    default = 4
+    range_start = 0
     range_end = 20
 
 class ReputationLocationsPerBiome(Range):

@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Tuple
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule
-from BaseClasses import CollectionState, Region
+from BaseClasses import CollectionState, MultiWorld, Region
 
 from .Items import ATSItemClassification, AgainstTheStormItem, item_dict
 from .Locations import ATSLocationClassification, AgainstTheStormLocation, location_dict
@@ -24,11 +24,11 @@ class AgainstTheStormWorld(World):
     item_name_to_id = {item: id for id, item in enumerate(item_dict.keys(), base_id)}
     location_name_to_id = {location: id for id, location in enumerate(location_dict.keys(), base_id)}
 
-    total_location_count: int
-    included_location_indices: list[int] = []
-    location_pool: Dict[str, int] = {}
-    production_recipes: Dict[str, List[List]] = {}
-    filler_items: List[str] = []
+    def __init__(self, world: MultiWorld, player: int):
+        super().__init__(world, player)
+        self.included_location_indices: list[int] = []
+        self.production_recipes: Dict[str, List[List]] = {}
+        self.filler_items: List[str] = []
     
     def are_recipes_beatable(self, production_recipes: Dict[str, List[List]]):
         glade_blueprints = [bp for bp in nonitem_blueprint_recipes if
@@ -54,16 +54,16 @@ class AgainstTheStormWorld(World):
 
     def generate_early(self):
         base_locations = [name for (name, (classification, _logic)) in location_dict.items() if classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
-        self.total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (7 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
+        total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (7 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
         total_item_count = len([name for (name, (_class, classification)) in item_dict.items() if
                                 classification == ATSItemClassification.good or
                                 classification == ATSItemClassification.guardian_part and self.options.seal_items or
                                 classification == ATSItemClassification.blueprint and self.options.blueprint_items or
                                 classification == ATSItemClassification.dlc_blueprint and self.options.enable_dlc])
-        if self.total_location_count < total_item_count:
-            while self.total_location_count < total_item_count:
+        if total_location_count < total_item_count:
+            while total_location_count < total_item_count:
                 self.options.reputation_locations_per_biome.value += 1
-                self.total_location_count += 7 if self.options.enable_dlc else 6
+                total_location_count += 7 if self.options.enable_dlc else 6
             logging.warning(f"[Against the Storm] Fewer locations than items detected in options, increased reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
         
         self.included_location_indices.append(1)
@@ -106,7 +106,7 @@ class AgainstTheStormWorld(World):
             
     def get_filler_item_name(self):
         choice = self.multiworld.random.choices(self.filler_items)[0]
-        # Reroll Survivor Bonding, effectively halving its occurence
+        # Reroll Survivor Bonding to half its occurence
         return self.multiworld.random.choices(self.filler_items)[0] if choice == "Survivor Bonding" and self.multiworld.random.random() < 0.5 else choice
 
     def create_item(self, item: str) -> AgainstTheStormItem:
@@ -131,12 +131,14 @@ class AgainstTheStormWorld(World):
                         itempool.append(item_key)
         
         # Fill remaining itempool space with filler
-        while len(itempool) < self.total_location_count:
+        while len(itempool) < len(self.multiworld.get_unfilled_locations(self.player)):
             itempool += [self.create_filler().name]
         
         self.multiworld.itempool += map(self.create_item, itempool)
 
     def create_regions(self) -> None:
+        location_pool: Dict[str, int] = {}
+        
         menu_region = Region("Menu", self.player, self.multiworld)
         self.multiworld.regions.append(menu_region)
         
@@ -144,34 +146,34 @@ class AgainstTheStormWorld(World):
         for name, (classification, logic) in location_dict.items():
             match classification:
                 case ATSLocationClassification.basic:
-                    self.location_pool[name] = self.location_name_to_id[name]
+                    location_pool[name] = self.location_name_to_id[name]
                 case ATSLocationClassification.biome_rep:
                     loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
                     if loc_index in self.included_location_indices:
-                        self.location_pool[name] = self.location_name_to_id[name]
+                        location_pool[name] = self.location_name_to_id[name]
                 case ATSLocationClassification.extra_trade:
                     trade_locations.append(name)
                 case ATSLocationClassification.dlc:
                     if self.options.enable_dlc:
-                        self.location_pool[name] = self.location_name_to_id[name]
+                        location_pool[name] = self.location_name_to_id[name]
                 case ATSLocationClassification.dlc_biome_rep:
                     if self.options.enable_dlc:
                         loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
                         if loc_index in self.included_location_indices:
-                            self.location_pool[name] = self.location_name_to_id[name]
+                            location_pool[name] = self.location_name_to_id[name]
                 case ATSLocationClassification.dlc_grove_expedition:
                     if self.options.enable_dlc:
                         expedition_index = int(re.search(r"^Coastal Grove - (\d\d?)\w\w Expedition$", name).group(1))
                         if expedition_index <= self.options.grove_expedition_locations:
-                            self.location_pool[name] = self.location_name_to_id[name]
+                            location_pool[name] = self.location_name_to_id[name]
         
         trade_locations = sample(trade_locations, self.options.extra_trade_locations.value)
         for location in trade_locations:
-            self.location_pool[location] = self.location_name_to_id[location]
+            location_pool[location] = self.location_name_to_id[location]
 
         main_region = Region("Main", self.player, self.multiworld)
-            
-        main_region.add_locations(self.location_pool, AgainstTheStormLocation)
+
+        main_region.add_locations(location_pool, AgainstTheStormLocation)
         self.multiworld.regions.append(main_region)
 
         menu_region.connect(main_region)
@@ -204,11 +206,9 @@ class AgainstTheStormWorld(World):
     
     def set_rules(self) -> None:
         self.multiworld.completion_condition[self.player] = lambda state: self.can_goal(state)
-        for location, loc_data in location_dict.items():
-            if location not in self.location_pool.keys():
-                continue
-            set_rule(self.multiworld.get_location(location, self.player),
-                     lambda state, logic=loc_data[1]: self.check_other_location_rules(location, state, self.player) and \
+        for location in self.multiworld.get_locations(self.player):
+            logic = location_dict[location.name][1]
+            set_rule(location, lambda state, logic=logic: self.check_other_location_rules(location.name, state, self.player) and \
                         satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None, logic))
 
     def fill_slot_data(self) -> Dict[str, Any]:
