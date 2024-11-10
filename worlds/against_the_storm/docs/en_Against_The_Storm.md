@@ -29,7 +29,7 @@ Locations are essentially just a list of custom deeds designed to cover many asp
         * 5, 50, and 500 Amber
         * 20 of each of the packs
         * 200 of each of the waters
-        * A configurable number of addition random resources
+        * A configurable number of additional random resources
     * Reach level 1-5 standing with one/all 4 trade neighbors
 * Others
     * Complete an order in each of the first 9 slots
