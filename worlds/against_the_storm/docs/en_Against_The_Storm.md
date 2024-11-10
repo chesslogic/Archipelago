@@ -40,6 +40,6 @@ Locations are essentially just a list of custom deeds designed to cover many asp
 ## What is the goal of this game when randomized?
 To gather the guardian parts and reforge a seal in the sealed forest. Note: you can play the sealed forest from the Training Expedition as well!
 
-## Known Issues as of v0.7.0
+## Known Issues as of v0.8.2
 * The trade related locations, because they are handled by trade routes, proc trade route related in game effects.
 * With `blueprint_items` on, the reputation blueprint reward button doesn't correctly disable if you connect during a run. When your reward changes, it should correct itself.
