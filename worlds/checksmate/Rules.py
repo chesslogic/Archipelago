@@ -1,42 +1,41 @@
 from math import ceil
 
-from typing import List, Dict
+from typing import Dict
 
-from BaseClasses import MultiWorld, CollectionState, Item
+from BaseClasses import MultiWorld, CollectionState
 from . import progression_items
-from . import Locations
 
 from worlds.generic.Rules import set_rule, add_rule
 from .Options import CMOptions
-from .Locations import Tactic
+from .Locations import location_table, Tactic
 
 
 def has_french_move(state: CollectionState, player: int) -> bool:
-    return state.count("Progressive Pawn", player) > 6  # and self.has("Play En Passant", player)
+    return state.has("Progressive Pawn", player, 7)  # and self.has("Play En Passant", player)
 
 
 def has_pawn(state: CollectionState, player: int) -> bool:
-    return state.has_any({"Progressive Pawn"}, player)
+    return state.has("Progressive Pawn", player)
 
 
 def has_pin(state: CollectionState, player: int) -> bool:
-    return state.has_any({"Progressive Minor Piece", "Progressive Major Piece"}, player)
+    return state.has_any(("Progressive Minor Piece", "Progressive Major Piece"), player)
 
 
 # @cache does not work due to "MultiWorld object was not de-allocated"
 # TODO: @cache_self1 is very close but needs a 'self' object
-def num_items_in_pool(itempool: List[Item], player_and_item: (int, str)):
-    return len([item for item in itempool if item.player == player_and_item[0] and item.name == player_and_item[1]])
+# def num_items_in_pool(itempool: List[Item], player_and_item: (int, str)):
+    # return len([item for item in itempool if item.player == player_and_item[0] and item.name == player_and_item[1]])
 
 
-def count_enemy_pieces(state: CollectionState, player: int) -> int:
-    return 9
+# def count_enemy_pieces(state: CollectionState, player: int) -> int:
+    # return 9
     # owned_item_ids = [item_id for item_id, item in item_table.items() if state.has(item_id, player)]
     # return sum(1 if x.startswith("Enemy Piece") else 0 for x in owned_item_ids)
 
 
-def count_enemy_pawns(state: CollectionState, player: int) -> int:
-    return 10
+# def count_enemy_pawns(state: CollectionState, player: int) -> int:
+    # return 10
     # owned_item_ids = [item_id for item_id, item in item_table.items() if state.has(item_id, player)]
     # return sum(1 if x.startswith("Enemy Pawn") else 0 for x in owned_item_ids)
 
@@ -60,8 +59,8 @@ enemy_locations_to_items: Dict[str, str] = {
 }
 
 
-def has_enemy(state: CollectionState, location_name: str, player: int) -> bool:
-    return True
+# def has_enemy(state: CollectionState, location_name: str, player: int) -> bool:
+    # return True
     # return state.has(enemy_locations_to_items[location_name], player)
 
 
@@ -140,7 +139,7 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
     # TODO: handle other goals
     multiworld.completion_condition[player] = lambda state: state.has("Victory", player)
 
-    for name, item in Locations.location_table.items():
+    for name, item in location_table.items():
         if not super_sized and item.material_expectations == -1:
             continue
         if item.is_tactic is not None:
@@ -155,24 +154,22 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
             ))
         if material_cost > 0:
             set_rule(multiworld.get_location(name, player),
-                     lambda state, v=material_cost: v <= 0 or meets_material_expectations(
+                     lambda state, v=material_cost: meets_material_expectations(
                          state, v, player, difficulty, absolute_relaxation))
         # player must have (a king plus) that many chessmen to capture any given number of chessme
         if item.chessmen_expectations == -1:
             # this is used for items which change between grand and not... currently only 1 location
-            if item.code == 4_902_039:  # Capture Everything
-                add_rule(multiworld.get_location(name, player),
-                         lambda state: meets_chessmen_expectations(
-                             state, 18 if super_sized else 14, player, opts.pocket_limit_by_pocket.value))
-            else:
-                raise RuntimeError("Unknown location code for custom chessmen: " + str(item.code))
+            assert item.code == 4_902_039, f"Unknown location code for custom chessmen: {str(item.code)}"
+            add_rule(multiworld.get_location(name, player),
+                     lambda state: meets_chessmen_expectations(
+                         state, 18 if super_sized else 14, player, opts.pocket_limit_by_pocket.value))
         elif item.chessmen_expectations > 0:
             add_rule(multiworld.get_location(name, player),
                      lambda state, v=item.chessmen_expectations: meets_chessmen_expectations(
                          state, v, player, opts.pocket_limit_by_pocket.value))
         if item.material_expectations == -1:
             add_rule(multiworld.get_location(name, player),
-                     lambda state: state.count("Super-Size Me", player) > 0)
+                     lambda state: state.has("Super-Size Me", player))
 
     # add_rule(multiworld.get_location("Capture 2 Pawns", player),
     #          lambda state: count_enemy_pawns(state, player) > 1)
@@ -208,20 +205,20 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
         add_rule(multiworld.get_location("Fork, True Triple", player), lambda state: has_pin(state, player))
         add_rule(multiworld.get_location("Fork, Sacrificial Royal", player), lambda state: has_pin(state, player))
         add_rule(multiworld.get_location("Fork, True Royal", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Pawn", player), lambda state: count_enemy_pawns(state, player) > 0)
-    add_rule(multiworld.get_location("Threaten Minor", player), lambda state: count_enemy_pieces(state, player) > 3)
+    add_rule(multiworld.get_location("Threaten Pawn", player), lambda state: True)
+    add_rule(multiworld.get_location("Threaten Minor", player), lambda state: True)
     add_rule(multiworld.get_location("Threaten Minor", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Major", player), lambda state: count_enemy_pieces(state, player) > 5)
+    add_rule(multiworld.get_location("Threaten Major", player), lambda state: True)
     add_rule(multiworld.get_location("Threaten Major", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Queen", player), lambda state: count_enemy_pieces(state, player) > 6)
+    add_rule(multiworld.get_location("Threaten Queen", player), lambda state: True)
     add_rule(multiworld.get_location("Threaten Queen", player), lambda state: has_pin(state, player))
     add_rule(multiworld.get_location("Threaten King", player), lambda state: has_pin(state, player))
     # special moves
     total_queens = multiworld.worlds[player].items_used[player].get("Progressive Major To Queen", 0)
     add_rule(multiworld.get_location("O-O Castle", player),
-             lambda state: state.count("Progressive Major Piece", player) >= 2 + total_queens)
+             lambda state: state.has("Progressive Major Piece", player, 2 + total_queens))
     add_rule(multiworld.get_location("O-O-O Castle", player),
-             lambda state: state.count("Progressive Major Piece", player) >= 2 + total_queens)
+             lambda state: state.has("Progressive Major Piece", player, 2 + total_queens))
     # add_rule(multiworld.get_location("French Move", player), lambda state: state.has_french_move(player))
 
     # state cannot have super-size me for small checkmate
@@ -245,4 +242,3 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
     # add_rule(multiworld.get_location("Checkmate 12 Pieces", player), lambda state: has_piece_material(state, player, 34))
     # add_rule(multiworld.get_location("Checkmate 13 Pieces", player), lambda state: has_piece_material(state, player, 36))
     # add_rule(multiworld.get_location("Checkmate 14 Pieces", player), lambda state: has_piece_material(state, player, 38))
-
