@@ -136,7 +136,6 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
     super_sized = opts.goal.value != opts.goal.option_single
     always_super_sized = opts.goal.value == opts.goal.option_super
 
-    # TODO: handle other goals
     multiworld.completion_condition[player] = lambda state: state.has("Victory", player)
 
     for name, item in location_table.items():
@@ -220,11 +219,6 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
     add_rule(multiworld.get_location("O-O-O Castle", player),
              lambda state: state.has("Progressive Major Piece", player, 2 + total_queens))
     # add_rule(multiworld.get_location("French Move", player), lambda state: state.has_french_move(player))
-
-    # state cannot have super-size me for small checkmate
-    # todo: remove from the pool if non-ordered progressive
-    add_rule(multiworld.get_location("Checkmate Minima", player),
-             lambda state: not state.has("Super Size Me", player))
 
     # goal materials
     # add_rule(multiworld.get_location("Checkmate Minima", player), lambda state: has_piece_material(state, player, 2))
