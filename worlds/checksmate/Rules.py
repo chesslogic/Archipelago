@@ -28,14 +28,14 @@ def has_pin(state: CollectionState, player: int) -> bool:
     # return len([item for item in itempool if item.player == player_and_item[0] and item.name == player_and_item[1]])
 
 
-# def count_enemy_pieces(state: CollectionState, player: int) -> int:
-    # return 9
+def count_enemy_pieces(state: CollectionState, player: int) -> int:
+    return 9
     # owned_item_ids = [item_id for item_id, item in item_table.items() if state.has(item_id, player)]
     # return sum(1 if x.startswith("Enemy Piece") else 0 for x in owned_item_ids)
 
 
-# def count_enemy_pawns(state: CollectionState, player: int) -> int:
-    # return 10
+def count_enemy_pawns(state: CollectionState, player: int) -> int:
+    return 10
     # owned_item_ids = [item_id for item_id, item in item_table.items() if state.has(item_id, player)]
     # return sum(1 if x.startswith("Enemy Pawn") else 0 for x in owned_item_ids)
 
@@ -205,12 +205,12 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
         add_rule(multiworld.get_location("Fork, True Triple", player), lambda state: has_pin(state, player))
         add_rule(multiworld.get_location("Fork, Sacrificial Royal", player), lambda state: has_pin(state, player))
         add_rule(multiworld.get_location("Fork, True Royal", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Pawn", player), lambda state: True)
-    add_rule(multiworld.get_location("Threaten Minor", player), lambda state: True)
+    add_rule(multiworld.get_location("Threaten Pawn", player), lambda state: count_enemy_pawns(state, player) > 0)
+    add_rule(multiworld.get_location("Threaten Minor", player), lambda state: count_enemy_pieces(state, player) > 3)
     add_rule(multiworld.get_location("Threaten Minor", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Major", player), lambda state: True)
+    add_rule(multiworld.get_location("Threaten Major", player), lambda state: count_enemy_pieces(state, player) > 5)
     add_rule(multiworld.get_location("Threaten Major", player), lambda state: has_pin(state, player))
-    add_rule(multiworld.get_location("Threaten Queen", player), lambda state: True)
+    add_rule(multiworld.get_location("Threaten Queen", player), lambda state: count_enemy_pieces(state, player) > 6)
     add_rule(multiworld.get_location("Threaten Queen", player), lambda state: has_pin(state, player))
     add_rule(multiworld.get_location("Threaten King", player), lambda state: has_pin(state, player))
     # special moves
