@@ -136,7 +136,6 @@ def set_rules(multiworld: MultiWorld, player: int, opts: CMOptions):
     super_sized = opts.goal.value != opts.goal.option_single
     always_super_sized = opts.goal.value == opts.goal.option_super
 
-    # TODO: handle other goals
     multiworld.completion_condition[player] = lambda state: state.has("Victory", player)
 
     for name, item in location_table.items():
