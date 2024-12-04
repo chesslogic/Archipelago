@@ -54,7 +54,7 @@ class AgainstTheStormWorld(World):
 
     def generate_early(self):
         base_locations = [name for (name, (classification, _logic)) in location_dict.items() if classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
-        total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (7 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
+        total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (8 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
         total_item_count = len([name for (name, (_class, classification)) in item_dict.items() if
                                 classification == ATSItemClassification.good or
                                 classification == ATSItemClassification.guardian_part and self.options.seal_items or
@@ -63,7 +63,7 @@ class AgainstTheStormWorld(World):
         if total_location_count < total_item_count:
             while total_location_count < total_item_count:
                 self.options.reputation_locations_per_biome.value += 1
-                total_location_count += 7 if self.options.enable_dlc else 6
+                total_location_count += 8 if self.options.enable_dlc else 6
             logging.warning(f"[Against the Storm] Fewer locations than items detected in options, increased reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
         
         self.included_location_indices.append(1)
