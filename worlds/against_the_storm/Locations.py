@@ -284,7 +284,7 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, List[str]]] = {
     "Scarlet Orchard - Reconstruct the Sea Snake": (ATSLocationClassification.basic, ["Planks", "Fabric", "Bricks", "Eggs,Meat,Roots,Berries,Mushrooms,Insects", "Incense,Scrolls,Tea,Resin", "Coal,Oil,Sea Marrow,Planks", "Stone,Copper Bars,Dye,Barrels,Incense", "Tools,Parts,Pipes"]),
     "Scarlet Orchard - Reconstruct the Smoldering Scorpion": (ATSLocationClassification.basic, ["Planks", "Fabric", "Bricks", "Eggs,Meat,Roots,Berries,Mushrooms,Insects", "Incense,Scrolls,Tea,Resin", "Coal,Oil,Sea Marrow,Planks", "Stone,Copper Bars,Dye,Barrels,Incense", "Tools,Parts,Pipes"]),
     "Ashen Thicket - Forge 1st Cornerstone": (ATSLocationClassification.dlc, []),
-    "Ashen Thicket - Forge 2st Cornerstone": (ATSLocationClassification.dlc, ["Planks", "Bricks"]),
+    "Ashen Thicket - Forge 2nd Cornerstone": (ATSLocationClassification.dlc, ["Planks", "Bricks"]),
     "Ashen Thicket - Forge 3rd Cornerstone": (ATSLocationClassification.dlc, ["Planks", "Bricks", "Coal,Copper Ore,Salt"]),
     "Coastal Grove - 1st Expedition": (ATSLocationClassification.dlc_grove_expedition, ["Algae,Fish", "Roots,Berries,Insects,Mushrooms,Vegetables"]),
     "Coastal Grove - 2nd Expedition": (ATSLocationClassification.dlc_grove_expedition, ["Planks", "Algae,Fish", "Roots,Berries,Insects,Mushrooms,Vegetables"]),
