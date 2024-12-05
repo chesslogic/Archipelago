@@ -64,7 +64,7 @@ class ExtraTradeLocations(Range):
     display_name = "Extra Trade Locations"
     default = 5
     range_start = 0
-    range_end = 51
+    range_end = 52
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
