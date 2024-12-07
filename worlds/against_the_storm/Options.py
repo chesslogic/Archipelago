@@ -87,18 +87,32 @@ class GroveExpeditionLocations(Range):
     range_start = 0
     range_end = 20
 
+class TotalBiomes(Range):
+    """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 7, your
+    Reputation locations will be distributed between Royal Woodlands, Cursed Royal Woodlands, Coral Forest, Scarlet
+    Orchard, Marshlands, as well as the DLC biomes Coastal Grove and Ashen Thicket.
+
+    You will always be expected to go to the Sealed Forest.
+
+    If DLC is off, this can be no more than 5 and will be reduced if necessary."""
+    display_name = "Extra Biomes"
+    default = 7
+    range_start = 0
+    range_end = 7
+
 class ReputationLocationsPerBiome(Range):
-    """Set the number of locations spread between the 1st and 18th reputation in each biome. For example, a setting of 1
+    """Set the number of locations. spread between the 1st and 18th reputation in each biome. For example, a setting of 1
     will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put locations at the 1st, 4th,
     8th, 11th, 15th, and 18th rep.
     This option will be increased before generation with a warning when Blueprint Items is on to ensure enough locations."""
-    display_name = "Reputation Locations Per Biome"
+    display_name = "Reputation Locations"
     default = 3
     range_start = 1
-    range_end = 16
+    range_end = 17
 
-class ReputationLocationMode(Choice):
-    """Select the mode for the reputation biome distribution.
+class ReputationLocationMode(OptionSet):
+    """Select the enabled modes for the reputation biome distribution. You may choose multiple options. If you choose no
+    options, By Biome will be enabled.
 
     Reputation By Biome: Places locations at the reputation indices in each biome. You may need to visit each biome to
     get all sphere 0 locations. For example, you might visit "Royal Woodlands - 1st Reputation" as well as "Scarlet
@@ -106,9 +120,7 @@ class ReputationLocationMode(Choice):
     Reputation Slurry: Appends each reputation location in order. Your progress is still tracked individually by biome.
     For example, you might visit "1st Reputation" and then much later "69th Reputation"."""
     display_name = "Reputation Location Mode"
-    option_by_biome = 0
-    option_slurry = 1
-    default = 0
+    valid_keys = {"By Biome", "Slurry"}
 
 class ExtraTradeLocations(Range):
     """Set the number of extra goods that will be chosen as trade route locations."""
