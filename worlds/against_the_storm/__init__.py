@@ -6,14 +6,14 @@ from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule
 from BaseClasses import CollectionState, MultiWorld, Region
 
-from .Items import ATSItemClassification, AgainstTheStormItem, item_dict
-from .Locations import ATSLocationClassification, AgainstTheStormLocation, location_dict
+from .Items import ATSItemClassification, AgainstTheStormItem, get_item_name_groups, item_dict
+from .Locations import ATSLocationClassification, AgainstTheStormLocation, get_location_name_groups, location_dict
 from .Options import AgainstTheStormOptions, RecipeShuffle
-from .Recipes import satisfies_recipe, blueprint_recipes, nonitem_blueprint_recipes
+from .Recipes import satisfies_recipe, blueprint_recipes, nonitem_blueprint_recipes, essential_blueprints
 
 class AgainstTheStormWorld(World):
     """
-    Against the Storm is a roguelite city builder
+    Against the Storm is a roguelite city builder about managing resource production chains and keeping villagers happy.
     """
 
     game = "Against the Storm"
@@ -23,6 +23,8 @@ class AgainstTheStormWorld(World):
     base_id = 9999000000
     item_name_to_id = {item: id for id, item in enumerate(item_dict.keys(), base_id)}
     location_name_to_id = {location: id for id, location in enumerate(location_dict.keys(), base_id)}
+    item_name_groups = get_item_name_groups(item_dict)
+    location_name_groups = get_location_name_groups(location_dict)
 
     def __init__(self, world: MultiWorld, player: int):
         super().__init__(world, player)
@@ -31,8 +33,7 @@ class AgainstTheStormWorld(World):
         self.filler_items: List[str] = []
     
     def are_recipes_beatable(self, production_recipes: Dict[str, List[List]]):
-        glade_blueprints = [bp for bp in nonitem_blueprint_recipes if
-                            bp != "Crude Workstation" and bp != "Field Kitchen" and bp != "Makeshift Post"]
+        glade_blueprints = [bp for bp in nonitem_blueprint_recipes if bp not in essential_blueprints]
 
         for bp in glade_blueprints:
             for recipe in production_recipes[bp]:
@@ -55,7 +56,7 @@ class AgainstTheStormWorld(World):
     def generate_early(self):
         base_locations = [name for (name, (classification, _logic)) in location_dict.items() if classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
         total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * (8 if self.options.enable_dlc else 6) + self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
-        total_item_count = len([name for (name, (_class, classification)) in item_dict.items() if
+        total_item_count = len([name for (name, (_class, classification, _item_group)) in item_dict.items() if
                                 classification == ATSItemClassification.good or
                                 classification == ATSItemClassification.guardian_part and self.options.seal_items or
                                 classification == ATSItemClassification.blueprint and self.options.blueprint_items or
@@ -114,7 +115,7 @@ class AgainstTheStormWorld(World):
 
     def create_items(self) -> None:
         itempool = []
-        for item_key, (_ap_classification, classification) in item_dict.items():
+        for item_key, (_ap_classification, classification, _item_group) in item_dict.items():
             match classification:
                 case ATSItemClassification.good:
                     itempool.append(item_key)

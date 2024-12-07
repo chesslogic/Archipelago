@@ -3,7 +3,9 @@ from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle
 
 
 class RecipeShuffle(Choice):
-    """Enable production building recipe shuffle. Will maintain the number of recipes available for goods and buildings. This includes glade events as well, such as the flawless buildings! Can skip Crude Workstation and/or Makeshift Post for less frustrating seeds."""
+    """Enable production building recipe shuffle. This includes glade events as well, such as the flawless buildings. Can skip Crude Workstation and/or Makeshift Post for less frustrating seeds.
+    
+    Options: vanilla, exclude_crude_ws_and_ms_post, exclude_crude_ws, exclude_ms_post, full_shuffle"""
     display_name = "Recipe Shuffle"
     option_vanilla = 0
     option_exclude_crude_ws_and_ms_post = 1
@@ -46,7 +48,9 @@ class DuplicatesAcquired(Choice):
 
 
 class Deathlink(Choice):
-    """Enable death link. Can send on villager leaving and/or death."""
+    """Enable death link. Can send on villager leaving and/or death.
+    
+    Options: off, death_only, leave_and_death"""
     display_name = "Death Link"
     option_off = 0
     option_death_only = 1
@@ -62,7 +66,7 @@ class ContinueBlueprintsForReputation(Toggle):
     display_name = "Continue Blueprints For Reputation"
 
 class SealItems(DefaultOnToggle):
-    """Shuffle 4 Seal related items. You will not be able to complete a stage of the Seal until receiving the relevant item."""
+    """Shuffle 4 special Seal related items. You will not be able to complete a stage of the Seal until receiving the relevant item."""
     display_name = "Seal Items"
 
 class RequiredSealTasks(Range):
@@ -101,11 +105,14 @@ class TotalBiomes(Range):
     range_end = 7
 
 class ReputationLocationsPerBiome(Range):
-    """Set the number of locations. spread between the 1st and 18th reputation in each biome. For example, a setting of 1
-    will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put locations at the 1st, 4th,
-    8th, 11th, 15th, and 18th rep.
-    This option will be increased before generation with a warning when Blueprint Items is on to ensure enough locations."""
-    display_name = "Reputation Locations"
+    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome.
+    
+    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
+    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep.
+    
+    This option will be increased before generation with a warning to ensure enough locations for items, such as with
+    Blueprint Items on."""
+    display_name = "Reputation Locations Per Biome"
     default = 3
     range_start = 1
     range_end = 17
