@@ -57,17 +57,21 @@ class Deathlink(Choice):
     option_leave_and_death = 2
     default = 0
 
+
 class BlueprintItems(Toggle):
     """Blueprints are no longer drafted through Reputation like in Vanilla. Instead, they are found as items, granting them as essential blueprints. This will make the start of a multiworld quite a bit harder, but the end quite a bit easier."""
     display_name = "Blueprint Items"
+
 
 class ContinueBlueprintsForReputation(Toggle):
     """Continue to offer blueprint selections as rewards for reputation, even with Blueprint Items on."""
     display_name = "Continue Blueprints For Reputation"
 
+
 class SealItems(DefaultOnToggle):
     """Shuffle 4 special Seal related items. You will not be able to complete a stage of the Seal until receiving the relevant item."""
     display_name = "Seal Items"
+
 
 class RequiredSealTasks(Range):
     """Increase the number of tasks you need to complete at each stage of the Seal, making the final settlement MUCH
@@ -79,17 +83,20 @@ class RequiredSealTasks(Range):
     default = 1
     range_start = 1
     range_end = 3
-    
+
+
 class EnableDLC(Toggle):
     """Enable DLC related locations, such as Frog resolve and Coastal Grove reputation."""
     display_name = "Enable DLC"
-    
+
+
 class GroveExpeditionLocations(Range):
     """Number of locations to place in the Coastal Grove's Strider Port. Will be ignored if DLC is off."""
     display_name = "Coastal Grove Expedition Locations"
     default = 4
     range_start = 0
     range_end = 20
+
 
 class TotalBiomes(Range):
     """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 7, your
@@ -104,6 +111,7 @@ class TotalBiomes(Range):
     range_start = 0
     range_end = 7
 
+
 class ReputationLocationsPerBiome(Range):
     """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome.
     
@@ -116,6 +124,7 @@ class ReputationLocationsPerBiome(Range):
     default = 3
     range_start = 1
     range_end = 17
+
 
 class ReputationLocationMode(OptionSet):
     """Select the enabled modes for the reputation biome distribution. You may choose multiple options. If you choose no
@@ -133,12 +142,14 @@ class ReputationLocationMode(OptionSet):
     display_name = "Reputation Location Mode"
     valid_keys = {"By Biome", "Slurry", "By Performance"}
 
+
 class ExtraTradeLocations(Range):
     """Set the number of extra goods that will be chosen as trade route locations."""
     display_name = "Extra Trade Locations"
     default = 5
     range_start = 0
     range_end = 52
+
 
 class ProgressiveGeneral(OptionSet):
     """Enable/disable progressive sequences of items and locations. This removes the corresponding named items. You will
