@@ -115,20 +115,19 @@ class AgainstTheStormWorld(World):
     def create_items(self) -> None:
         itempool = []
         for item_key, (_ap_classification, classification) in item_dict.items():
-            match classification:
-                case ATSItemClassification.good:
+            if ATSItemClassification.good == classification:
+                itempool.append(item_key)
+            if ATSItemClassification.blueprint == classification:
+                if self.options.blueprint_items:
                     itempool.append(item_key)
-                case ATSItemClassification.blueprint:
-                    if self.options.blueprint_items:
-                        itempool.append(item_key)
-                case ATSItemClassification.filler:
-                    self.filler_items.append(item_key)
-                case ATSItemClassification.guardian_part:
-                    if self.options.seal_items:
-                        itempool.append(item_key)
-                case ATSItemClassification.dlc_blueprint:
-                    if self.options.enable_dlc and self.options.blueprint_items:
-                        itempool.append(item_key)
+            if ATSItemClassification.filler == classification:
+                self.filler_items.append(item_key)
+            if ATSItemClassification.guardian_part == classification:
+                if self.options.seal_items:
+                    itempool.append(item_key)
+            if ATSItemClassification.dlc_blueprint == classification:
+                if self.options.enable_dlc and self.options.blueprint_items:
+                    itempool.append(item_key)
         
         # Fill remaining itempool space with filler
         while len(itempool) < len(self.multiworld.get_unfilled_locations(self.player)):
@@ -144,28 +143,27 @@ class AgainstTheStormWorld(World):
         
         trade_locations = []
         for name, (classification, logic) in location_dict.items():
-            match classification:
-                case ATSLocationClassification.basic:
+            if ATSLocationClassification.basic == classification:
+                location_pool[name] = self.location_name_to_id[name]
+            if ATSLocationClassification.biome_rep:
+                loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
+                if loc_index in self.included_location_indices:
                     location_pool[name] = self.location_name_to_id[name]
-                case ATSLocationClassification.biome_rep:
+            if ATSLocationClassification.extra_trade == classification:
+                trade_locations.append(name)
+            if ATSLocationClassification.dlc:
+                if self.options.enable_dlc:
+                    location_pool[name] = self.location_name_to_id[name]
+            if ATSLocationClassification.dlc_biome_rep == classification:
+                if self.options.enable_dlc:
                     loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
                     if loc_index in self.included_location_indices:
                         location_pool[name] = self.location_name_to_id[name]
-                case ATSLocationClassification.extra_trade:
-                    trade_locations.append(name)
-                case ATSLocationClassification.dlc:
-                    if self.options.enable_dlc:
+            if ATSLocationClassification.dlc_grove_expedition == classification:
+                if self.options.enable_dlc:
+                    expedition_index = int(re.search(r"^Coastal Grove - (\d\d?)\w\w Expedition$", name).group(1))
+                    if expedition_index <= self.options.grove_expedition_locations:
                         location_pool[name] = self.location_name_to_id[name]
-                case ATSLocationClassification.dlc_biome_rep:
-                    if self.options.enable_dlc:
-                        loc_index = int(re.search(r"^(\d\d?)\w\w Reputation - .*$", name).group(1))
-                        if loc_index in self.included_location_indices:
-                            location_pool[name] = self.location_name_to_id[name]
-                case ATSLocationClassification.dlc_grove_expedition:
-                    if self.options.enable_dlc:
-                        expedition_index = int(re.search(r"^Coastal Grove - (\d\d?)\w\w Expedition$", name).group(1))
-                        if expedition_index <= self.options.grove_expedition_locations:
-                            location_pool[name] = self.location_name_to_id[name]
         
         trade_locations = sample(trade_locations, self.options.extra_trade_locations.value)
         for location in trade_locations:
@@ -208,8 +206,13 @@ class AgainstTheStormWorld(World):
         self.multiworld.completion_condition[self.player] = lambda state: self.can_goal(state)
         for location in self.multiworld.get_locations(self.player):
             logic = location_dict[location.name][1]
-            set_rule(location, lambda state, logic=logic: self.check_other_location_rules(location.name, state, self.player) and \
-                        satisfies_recipe(state, self.player, self.production_recipes if self.options.blueprint_items.value else None, logic))
+            set_rule(location,
+                     lambda state, l=logic: self.check_other_location_rules(location.name, state, self.player) and \
+                        satisfies_recipe(
+                            state, self.player,
+                            self.production_recipes if self.options.blueprint_items.value else None,
+                            l)
+                     )
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
