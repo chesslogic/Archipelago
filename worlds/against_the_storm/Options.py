@@ -229,6 +229,8 @@ class ProgressiveComplexFood(Choice):
 class AgainstTheStormOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
     recipe_shuffle: RecipeShuffle
+    shuffle_duplicates: ShuffleDuplicates
+    duplicates_acquired: DuplicatesAcquired
     deathlink: Deathlink
     blueprint_items: BlueprintItems
     continue_blueprints_for_reputation: ContinueBlueprintsForReputation
@@ -236,8 +238,11 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     required_seal_tasks: RequiredSealTasks
     enable_dlc: EnableDLC
     grove_expedition_locations: GroveExpeditionLocations
+    total_biomes: TotalBiomes
     reputation_locations_per_biome: ReputationLocationsPerBiome
-    reputation_location_mode: ReputationLocationMode
+    reputation_location_slurry: ReputationLocationSlurry
+    total_biomes_by_top_performance: TotalBiomesByTopPerformance
+    reputation_locations_per_biome_by_top_performance: ReputationLocationsPerBiomeByTopPerformance
     extra_trade_locations: ExtraTradeLocations
     progressive: ProgressiveGeneral
     progressive_complex_food: ProgressiveComplexFood

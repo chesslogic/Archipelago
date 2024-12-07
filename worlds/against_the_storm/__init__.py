@@ -29,7 +29,10 @@ class AgainstTheStormWorld(World):
 
     def __init__(self, world: MultiWorld, player: int):
         super().__init__(world, player)
+        self.included_biomes: list[str] = []
         self.included_location_indices: list[int] = []
+        self.championship_places = 0
+        self.championship_location_indices: list[int] = []
         self.production_recipes: Dict[str, List[List]] = {}
         self.filler_items: List[str] = []
 
@@ -72,12 +75,10 @@ class AgainstTheStormWorld(World):
             logging.warning(
                 f"[Against the Storm] Fewer locations than items detected in options, increased reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
 
-        self.included_location_indices.append(1)
-        # This evenly spreads the option's number of locations between 2 and 17
-        # Generating, for example, [10], [4, 8, 11, 15], or [2-17 sans 9]
-        for i in range(self.options.reputation_locations_per_biome):
-            self.included_location_indices.append(
-                round(1 + (i + 1) * (17 / (self.options.reputation_locations_per_biome + 1))))
+        self.included_location_indices = get_new_rep_indices(self.options.reputation_locations_per_biome.value)
+        self.championship_places = self.options.total_biomes_by_top_performance.value
+        self.championship_location_indices = (
+            get_new_rep_indices(self.options.reputation_locations_per_biome_by_top_performance.value))
 
         # Recipe shuffle
         all_production = {}
@@ -242,3 +243,12 @@ class AgainstTheStormWorld(World):
             "rep_location_indices": self.included_location_indices,
             "production_recipes": self.production_recipes
         }
+
+
+def get_new_rep_indices(num_indices: int):
+    reps = [1]
+    # This evenly spreads the option's number of locations between 2 and 17
+    # Generating, for example, [10], [4, 8, 11, 15], or [2-17 sans 9]
+    for i in range(num_indices):
+        reps.append(round(1 + (i + 1) * (17 / (num_indices + 1))))
+    return reps
