@@ -118,9 +118,13 @@ class ReputationLocationMode(OptionSet):
     get all sphere 0 locations. For example, you might visit "Royal Woodlands - 1st Reputation" as well as "Scarlet
     Orchard - 1st Reputation".
     Reputation Slurry: Appends each reputation location in order. Your progress is still tracked individually by biome.
-    For example, you might visit "1st Reputation" and then much later "69th Reputation"."""
+    For example, you might visit "1st Reputation" and then much later "69th Reputation".
+    Reputation By Performance: As By Biome, but the progress is tracked agnostic to biome name. For example, you might
+    visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome acquire "2nd Biome - 1st
+    Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to acquire "Gold Biome"
+    locations in the same biome, while resuming the previous biome would at first grant "2nd Biome" locations."""
     display_name = "Reputation Location Mode"
-    valid_keys = {"By Biome", "Slurry"}
+    valid_keys = {"By Biome", "Slurry", "By Performance"}
 
 class ExtraTradeLocations(Range):
     """Set the number of extra goods that will be chosen as trade route locations."""
