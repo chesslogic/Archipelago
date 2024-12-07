@@ -17,7 +17,9 @@ class ShuffleDuplicates(Choice):
     """Enable shuffling duplicate items for certain items:
 
     Off: Disabled. Each item will only be available from one location.
+
     Essential: Adds two additional copies each of Amber, Pipes, Parts, Purging Fire, Packs of Provisions.
+
     Many: Adds just one each from the above and the following: Planks, Fiber, Bricks, Tools, and Packs of Crops."""
     display_name = "Shuffle Duplicates"
     option_off = 0
@@ -27,10 +29,13 @@ class ShuffleDuplicates(Choice):
 
 
 class DuplicatesAcquired(Choice):
-    """When you get a duplicate item, what happens to it? No effect if Shuffle Duplicates is Off.
+    """When you get a duplicate item, what happens to it? No effect if Shuffle Duplicates is Off and no two Progressive
+    series are active.
 
     First: The first item you get has full impact, while later copies are ignored.
+
     Resources: Each additional copy you get is converted into an amount of Starting Resources corresponding to its type.
+
     Productive: Each additional copy you get gives you a 10% chance to double your yield (from ALL sources, after ALL
     modifiers, once embarked!). May not affect Progressive items and does not accelerate cornerstone progress."""
     display_name = "Duplicates Acquired"
@@ -112,25 +117,52 @@ class ExtraTradeLocations(Range):
     range_start = 0
     range_end = 52
 
-class Progressive(OptionSet):
-    """Enable/disable progressive sequences of items and locations. This means you will not get named items, and will
-    instead get a "Progressive Item" instead, unlocking the next item in its sequence. This can make communicating with
-    other players about important items  easier, although it will also reduce the potential variance between different
-    seeds.
-
-    For each enabled option below, you will receive its corresponding items in order. Duplicates of items granted by
-    multiple sequences are handled by the Duplicate Item option.
+class ProgressiveGeneral(OptionSet):
+    """Enable/disable progressive sequences of items and locations. This removes the corresponding named items. You will
+    instead get a "Progressive Item", unlocking the next item in its sequence. For each enabled option below, you will
+    receive its corresponding items in order. Duplicates of items granted by multiple sequences are handled by the
+    Duplicate Item option.
 
     Guardian - Turns the 4 Guardian Parts into a single progressive sequence.
-    Short Expedition - Amber, Pipes, Purging Fire, Packs of Provisions, Tools, Wildfire Essence, Ancient Tablets.
-    Building - Planks, Fabric, Bricks, Parts.
+
+    Short Expedition - Amber, Pipes, Purging Fire, Packs of Provisions, Tools, Parts, Wildfire Essence, Ancient Tablets.
+
+    Buildings - Planks, Fabric, Bricks, Parts.
+
+    Trade - Amber, Packs of Provisions, Packs of Trade Goods, Packs of Building Materials, Packs of Luxury Goods,
+    Packs of Crops.
+
+    Metallurgy - Copper Bars, Scales, Copper Ore, Pipes, Tools, Parts.
+
+    Fishing - Fish, Algae, Scales, Packs of Crops, Fishing Hut.
     """
     display_name = "Progressive"
     valid_keys = {
         "Guardian",
         "Short Expedition",
         "Building",
+        "Trade",
+        "Metallurgy",
+        "Fishing",
     }
+
+
+class ProgressiveComplexFood(Choice):
+    """
+    Similar to the general Progressive setting, but specific to Complex Food. This will always generate a "Progressive
+    Complex Food" item, which will unlock the next Complex Food item in its sequence. This can make it easier to
+    communicate with other players about important items.
+
+    Random - Puts the 7 Complex Food items into a single progressive sequence. The order is random! This guarantees that
+    you'll find the complex food your seed expects you to use for early Reputation.
+
+    Cheap - Porridge, Jerky, Pie, Skewers, Paste, Pickled Goods, Biscuits. Yes, biscuits are least cheap!
+    """
+    display_name = "Progressive Complex Food"
+    option_random = 0
+    option_cheap = 1
+    default = 0
+
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
@@ -146,4 +178,5 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     reputation_locations_per_biome: ReputationLocationsPerBiome
     reputation_location_mode: ReputationLocationMode
     extra_trade_locations: ExtraTradeLocations
-    progressive: Progressive
+    progressive: ProgressiveGeneral
+    progressive_complex_food: ProgressiveComplexFood
