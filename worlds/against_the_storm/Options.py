@@ -12,6 +12,34 @@ class RecipeShuffle(Choice):
     option_full_shuffle = 4
     default = 0
 
+
+class ShuffleDuplicates(Choice):
+    """Enable shuffling duplicate items for certain items:
+
+    Off: Disabled. Each item will only be available from one location.
+    Essential: Adds two additional copies each of Amber, Pipes, Parts, Purging Fire, Packs of Provisions.
+    Many: Adds just one each from the above and the following: Planks, Fiber, Bricks, Tools, and Packs of Crops."""
+    display_name = "Shuffle Duplicates"
+    option_off = 0
+    option_essential = 1
+    option_many = 2
+    default = 0
+
+
+class DuplicatesAcquired(Choice):
+    """When you get a duplicate item, what happens to it? No effect if Shuffle Duplicates is Off.
+
+    First: The first item you get has full impact, while later copies are ignored.
+    Resources: Each additional copy you get is converted into an amount of Starting Resources corresponding to its type.
+    Productive: Each additional copy you get gives you a 10% chance to double your yield (from ALL sources, after ALL
+    modifiers, once embarked!). May not affect Progressive items and does not accelerate cornerstone progress."""
+    display_name = "Duplicates Acquired"
+    option_first = 0
+    option_resources = 1
+    option_productive = 2
+    default = 0
+
+
 class Deathlink(Choice):
     """Enable death link. Can send on villager leaving and/or death."""
     display_name = "Death Link"
@@ -89,6 +117,9 @@ class Progressive(OptionSet):
     instead get a "Progressive Item" instead, unlocking the next item in its sequence. This can make communicating with
     other players about important items  easier, although it will also reduce the potential variance between different
     seeds.
+
+    For each enabled option below, you will receive its corresponding items in order. Duplicates of items granted by
+    multiple sequences are handled by the Duplicate Item option.
 
     Guardian - Turns the 4 Guardian Parts into a single progressive sequence.
     Short Expedition - Amber, Pipes, Purging Fire, Packs of Provisions, Tools, Wildfire Essence, Ancient Tablets.
