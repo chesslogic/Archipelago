@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle, StartInventoryPool
+from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle, StartInventoryPool, OptionSet
+
 
 class RecipeShuffle(Choice):
     """Enable production building recipe shuffle. Will maintain the number of recipes available for goods and buildings. This includes glade events as well, such as the flawless buildings! Can skip Crude Workstation and/or Makeshift Post for less frustrating seeds."""
@@ -32,7 +33,11 @@ class SealItems(DefaultOnToggle):
     display_name = "Seal Items"
 
 class RequiredSealTasks(Range):
-    """Increase the number of tasks you need to complete at each stage of the Seal, making the final settlement MUCH harder."""
+    """Increase the number of tasks you need to complete at each stage of the Seal, making the final settlement MUCH
+    harder.
+
+    In vanilla, you need to complete 1 task at each of the 4 stages. This can add more tasks before each cornerstone.
+    Note that you still need to complete at least 1 task at each stage after acquiring the Guardian items!"""
     display_name = "Required Seal Tasks"
     default = 1
     range_start = 1
@@ -59,12 +64,42 @@ class ReputationLocationsPerBiome(Range):
     range_start = 1
     range_end = 16
 
+class ReputationBiomeMode(Choice):
+    """Select the mode for the reputation biome distribution.
+
+    Reputation By Biome: Places locations at the reputation indices in each biome. You may need to visit each biome to
+    get all sphere 0 locations. For example, you might visit "Royal Woodlands - 1st Reputation" as well as "Scarlet
+    Orchard - 1st Reputation".
+    Reputation Slurry: Appends each reputation location in order. Your progress is still tracked individually by biome.
+    For example, you might visit "1st Reputation" and then much later "69th Reputation"."""
+    display_name = "Reputation Biome Mode"
+    option_by_biome = 0
+    option_slurry = 1
+    default = 0
+
 class ExtraTradeLocations(Range):
     """Set the number of extra goods that will be chosen as trade route locations."""
     display_name = "Extra Trade Locations"
     default = 5
     range_start = 0
     range_end = 52
+
+class Progressive(OptionSet):
+    """Enable/disable progressive sequences of items and locations. This means you will not get named items, and will
+    instead get a "Progressive Item" instead, unlocking the next item in its sequence. This can make communicating with
+    other players about important items  easier, although it will also reduce the potential variance between different
+    seeds.
+
+    Guardian - Turns the 4 Guardian Parts into a single progressive sequence.
+    Short Expedition - Amber, Pipes, Purging Fire, Packs of Provisions, Tools, Wildfire Essence, Ancient Tablets.
+    Building - Planks, Fabric, Bricks, Parts.
+    """
+    display_name = "Progressive"
+    valid_keys = {
+        "Guardian",
+        "Short Expedition",
+        "Building",
+    }
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
@@ -79,3 +114,4 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     grove_expedition_locations: GroveExpeditionLocations
     reputation_locations_per_biome: ReputationLocationsPerBiome
     extra_trade_locations: ExtraTradeLocations
+    progressive: Progressive
