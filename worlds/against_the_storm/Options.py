@@ -64,7 +64,7 @@ class ReputationLocationsPerBiome(Range):
     range_start = 1
     range_end = 16
 
-class ReputationBiomeMode(Choice):
+class ReputationLocationMode(Choice):
     """Select the mode for the reputation biome distribution.
 
     Reputation By Biome: Places locations at the reputation indices in each biome. You may need to visit each biome to
@@ -72,7 +72,7 @@ class ReputationBiomeMode(Choice):
     Orchard - 1st Reputation".
     Reputation Slurry: Appends each reputation location in order. Your progress is still tracked individually by biome.
     For example, you might visit "1st Reputation" and then much later "69th Reputation"."""
-    display_name = "Reputation Biome Mode"
+    display_name = "Reputation Location Mode"
     option_by_biome = 0
     option_slurry = 1
     default = 0
@@ -113,5 +113,6 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     enable_dlc: EnableDLC
     grove_expedition_locations: GroveExpeditionLocations
     reputation_locations_per_biome: ReputationLocationsPerBiome
+    reputation_location_mode: ReputationLocationMode
     extra_trade_locations: ExtraTradeLocations
     progressive: Progressive
