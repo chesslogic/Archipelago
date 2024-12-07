@@ -99,24 +99,26 @@ class GroveExpeditionLocations(Range):
 
 
 class TotalBiomes(Range):
-    """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 7, your
+    """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 8, your
     Reputation locations will be distributed between Royal Woodlands, Cursed Royal Woodlands, Coral Forest, Scarlet
-    Orchard, Marshlands, as well as the DLC biomes Coastal Grove and Ashen Thicket.
+    Orchard, and Marshlands, as well as the DLC biomes Coastal Grove and Ashen Thicket. You may need to visit each biome
+    to get all sphere 0 locations.
 
-    You will always be expected to go to the Sealed Forest.
+    In addition, you will always be expected to go to the Sealed Forest.
 
-    If DLC is off, this can be no more than 5 and will be reduced if necessary."""
-    display_name = "Extra Biomes"
-    default = 7
-    range_start = 0
-    range_end = 7
+    If DLC is off, this can be no more than 6 and will be reduced if necessary."""
+    display_name = "Total Biomes"
+    default = 8
+    range_start = 1
+    range_end = 8
 
 
 class ReputationLocationsPerBiome(Range):
     """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome.
     
     For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
-    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep.
+    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Royal Woodlands - 1st Reputation" as well
+    as "Scarlet Orchard - 1st Reputation".
     
     This option will be increased before generation with a warning to ensure enough locations for items, such as with
     Blueprint Items on."""
@@ -126,21 +128,43 @@ class ReputationLocationsPerBiome(Range):
     range_end = 17
 
 
-class ReputationLocationMode(OptionSet):
-    """Select the enabled modes for the reputation biome distribution. You may choose multiple options. If you choose no
-    options, By Biome will be enabled.
+class ReputationLocationSlurry(Range):
+    """Adds a number of locations up to some N reputation. Progress through this slurry is still tracked individually by
+    biome, meaning you must still revisit individual biomes.
 
-    Reputation By Biome: Places locations at the reputation indices in each biome. You may need to visit each biome to
-    get all sphere 0 locations. For example, you might visit "Royal Woodlands - 1st Reputation" as well as "Scarlet
-    Orchard - 1st Reputation".
-    Reputation Slurry: Appends each reputation location in order. Your progress is still tracked individually by biome.
-    For example, you might visit "1st Reputation" and then much later "69th Reputation".
-    Reputation By Performance: As By Biome, but the progress is tracked agnostic to biome name. For example, you might
-    visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome acquire "2nd Biome - 1st
-    Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to acquire "Gold Biome"
-    locations in the same biome, while resuming the previous biome would at first grant "2nd Biome" locations."""
-    display_name = "Reputation Location Mode"
-    valid_keys = {"By Biome", "Slurry", "By Performance"}
+    For example, you might visit "1st Reputation" and then much later "69th Reputation". If you reach 5 reputation in
+    the Royal Woodlands, and another 5 in the Coral Forest, and then return to the Royal Woodlands, you would need to
+    reach 6 Reputation to reach your next location, "11th Reputation".
+
+    If DLC is off, this can be no more than 102 and will be reduced if necessary."""
+    display_name = "Reputation Location Slurry"
+    default = 0
+    range_start = 0
+    range_end = 136
+
+
+class TotalBiomesByTopPerformance(Range):
+    """Set the maximum number of biomes the player will be expected to visit for high score purposes.
+
+    For example, you might visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome
+    acquire "2nd Biome - 1st Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to
+    acquire "Gold Biome" locations in your new biome, while leaving to resume the previous biome would at first grant
+    "2nd Biome" locations.
+
+    If DLC is off, this can be no more than 6 and will be reduced if necessary."""
+    display_name = "Total Biomes By Top Performance"
+    default = 0
+    range_start = 0
+    range_end = 8
+
+
+class ReputationLocationsPerBiomeByTopPerformance(Range):
+    """As Reputation Locations Per Biome, but your progress in each is tracked agnostic to biome name. Disabled if Total
+    Biomes By Top Performance is 0."""
+    display_name = "Reputation Locations Per Biome By Top Performance"
+    default = 3
+    range_start = 1
+    range_end = 17
 
 
 class ExtraTradeLocations(Range):
@@ -187,14 +211,17 @@ class ProgressiveComplexFood(Choice):
     Complex Food" item, which will unlock the next Complex Food item in its sequence. This can make it easier to
     communicate with other players about important items.
 
-    Random - Puts the 7 Complex Food items into a single progressive sequence. The order is random! This guarantees that
-    you'll find the complex food your seed expects you to use for early Reputation.
+    Off - Disabled. Your Complex Foods will be available as fixed items.
 
-    Cheap - Porridge, Jerky, Pie, Skewers, Paste, Pickled Goods, Biscuits. Yes, biscuits are least cheap!
+    Random - Puts the 7 Complex Food items into a single progressive sequence. The order is random within your seed!
+    This simply guarantees that you'll find the complex food that your seed expects you to use for early Reputation.
+
+    Cheap - Porridge, Jerky, Pie, Skewers, Paste, Pickled Goods, Biscuits. Wait, biscuits are expensive...?
     """
     display_name = "Progressive Complex Food"
-    option_random = 0
-    option_cheap = 1
+    option_off = 0
+    option_random = 1
+    option_cheap = 2
     default = 0
 
 

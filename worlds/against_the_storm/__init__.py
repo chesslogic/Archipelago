@@ -223,12 +223,12 @@ class AgainstTheStormWorld(World):
     def set_rules(self) -> None:
         self.multiworld.completion_condition[self.player] = lambda state: self.can_goal(state)
         for location in self.multiworld.get_locations(self.player):
-            logic = location_dict[location.name][1]
+            recipe = location_dict[location.name][1]
             set_rule(location,
-                     lambda state, logic=logic: self.check_other_location_rules(location.name, state, self.player) and \
-                                                satisfies_recipe(state, self.player,
-                                                                 self.production_recipes if self.options.blueprint_items.value else None,
-                                                                 logic))
+                     lambda state, logic=recipe: self.check_other_location_rules(location.name, state, self.player) and \
+                                                 satisfies_recipe(state, self.player,
+                                                                  self.production_recipes if self.options.blueprint_items.value else None,
+                                                                  logic))
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
