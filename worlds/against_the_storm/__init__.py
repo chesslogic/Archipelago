@@ -94,7 +94,7 @@ class AgainstTheStormWorld(World):
         flip_cw = "Except Crude Workstation"
         flip_ms = "Except Makeshift Post"
         flip_fk = "Except Field Kitchen"
-        full_shuffle = "Full Shuffle"
+        full_shuffle = "Enable"
 
         skip_cws = (
                 flip_cw in self.options.recipe_shuffle.value == full_shuffle in self.options.recipe_shuffle.value)
@@ -156,6 +156,16 @@ class AgainstTheStormWorld(World):
                 case ATSItemClassification.dlc_blueprint:
                     if self.options.enable_dlc and self.options.blueprint_items:
                         itempool.append(item_key)
+
+        # Shuffle duplicates
+        essentials = ["Amber", "Pipes", "Parts", "Purging Fire", "Packs of Provisions"]
+        extras = ["Planks", "Fiber", "Bricks", "Tools", "Packs of Crops"]
+        if self.options.shuffle_duplicates.value > 0:
+            itempool += essentials
+            if self.options.shuffle_duplicates.value == self.options.shuffle_duplicates.option_essential.value:
+                itempool += essentials
+            elif self.options.shuffle_duplicates.value == self.options.shuffle_duplicates.option_many.value:
+                itempool += extras
 
         # Fill remaining itempool space with filler
         while len(itempool) < len(self.multiworld.get_unfilled_locations(self.player)):
@@ -251,7 +261,8 @@ class AgainstTheStormWorld(World):
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
-            "recipe_shuffle": self.options.recipe_shuffle.value,
+            "recipe_shuffle": 4 if "Enable" in self.options.recipe_shuffle.value else 0,
+            "recipe_shuffle_map": self.options.recipe_shuffle.value,
             "deathlink": self.options.deathlink.value,
             "blueprint_items": self.options.blueprint_items.value,
             "continue_blueprints_for_reputation": self.options.continue_blueprints_for_reputation.value,

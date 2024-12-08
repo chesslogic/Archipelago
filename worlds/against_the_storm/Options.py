@@ -12,7 +12,7 @@ class RecipeShuffle(OptionSet):
     Options: Disable, Except Crude Workstation, Except Makeshift Post, Except Field Kitchen"""
     display_name = "Recipe Shuffle"
     valid_keys = {
-        "Full Shuffle",
+        "Enable",
         "Except Crude Workstation",
         "Except Makeshift Post",
         "Except Field Kitchen"
@@ -32,7 +32,7 @@ class ShuffleDuplicates(Choice):
     option_essential = 1
     option_many = 2
     default = 0
-r
+
 
 class DuplicatesAcquired(Choice):
     """When you get a duplicate item, what happens to it? No effect if Shuffle Duplicates is Off and no two Progressive
