@@ -84,33 +84,51 @@ class AgainstTheStormWorld(World):
         all_production = {}
         all_production.update(blueprint_recipes)
         all_production.update(nonitem_blueprint_recipes)
-        if self.options.recipe_shuffle.value != "vanilla":
-            skipCWS = self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws or \
-                      self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws_and_ms_post
-            skipMSP = self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_ms_post or \
-                      self.options.recipe_shuffle.value == RecipeShuffle.option_exclude_crude_ws_and_ms_post
-            while True:  # Break at the bottom when `are_recipes_beatable`
-                all_recipes: List[Tuple[str, int]] = []
-                for blueprint, recipes in all_production.items():
-                    if blueprint == "Crude Workstation" and skipCWS or blueprint == "Makeshift Post" and skipMSP:
-                        continue
-                    for good, star_level in recipes.items():
-                        all_recipes.append((good, star_level))
-                for blueprint, recipes in all_production.items():
-                    if blueprint == "Crude Workstation" and skipCWS or blueprint == "Makeshift Post" and skipMSP:
-                        self.production_recipes[blueprint] = list(map(list, recipes.items()))
-                        continue
-                    recipe_set: List[List] = []
-                    for _ in range(len(recipes)):
-                        recipe = all_recipes.pop(randrange(len(all_recipes)))
-                        recipe_set.append([recipe[0], recipe[1]])
-                    self.production_recipes[blueprint] = recipe_set
-                # Verify all of a certain good didn't wind up in glade event buildings, as that wouldn't pass logic
-                if self.are_recipes_beatable(self.production_recipes):
-                    break
+        if len(self.options.recipe_shuffle.value) > 0:
+            self.shuffle_recipes(all_production)
         else:
             self.production_recipes = {key: [[item, num] for item, num in value.items()] for key, value in
                                        all_production.items() if not isinstance(value, str)}
+
+    def shuffle_recipes(self, all_production):
+        flip_cw = "Except Crude Workstation"
+        flip_ms = "Except Makeshift Post"
+        flip_fk = "Except Field Kitchen"
+        full_shuffle = "Full Shuffle"
+
+        skip_cws = (
+                flip_cw in self.options.recipe_shuffle.value == full_shuffle in self.options.recipe_shuffle.value)
+        skip_msp = (
+                flip_ms in self.options.recipe_shuffle.value == full_shuffle in self.options.recipe_shuffle.value)
+        skip_fkn = (
+                flip_fk in self.options.recipe_shuffle.value == full_shuffle in self.options.recipe_shuffle.value)
+        while True:  # Break at the bottom when `are_recipes_beatable`
+            all_recipes: List[Tuple[str, int]] = []
+            for blueprint, recipes in all_production.items():
+                if (blueprint == "Crude Workstation" and skip_cws or
+                        blueprint == "Makeshift Post" and skip_msp or
+                        blueprint == "Field Kitchen" and skip_fkn):
+                    continue
+                elif full_shuffle not in self.options.recipe_shuffle.value:
+                    continue
+                for good, star_level in recipes.items():
+                    all_recipes.append((good, star_level))
+            for blueprint, recipes in all_production.items():
+                if (blueprint == "Crude Workstation" and skip_cws or
+                        blueprint == "Makeshift Post" and skip_msp or
+                        blueprint == "Field Kitchen" and skip_fkn):
+                    self.production_recipes[blueprint] = list(map(list, recipes.items()))
+                    continue
+                elif full_shuffle not in self.options.recipe_shuffle.value:
+                    continue
+                recipe_set: List[List] = []
+                for _ in range(len(recipes)):
+                    recipe = all_recipes.pop(randrange(len(all_recipes)))
+                    recipe_set.append([recipe[0], recipe[1]])
+                self.production_recipes[blueprint] = recipe_set
+            # Verify all of a certain good didn't wind up in glade event buildings, as that wouldn't pass logic
+            if self.are_recipes_beatable(self.production_recipes):
+                break
 
     def get_filler_item_name(self):
         choice = self.multiworld.random.choices(self.filler_items)[0]

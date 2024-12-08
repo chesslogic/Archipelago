@@ -2,17 +2,21 @@ from dataclasses import dataclass
 from Options import Choice, Toggle, Range, PerGameCommonOptions, DefaultOnToggle, StartInventoryPool, OptionSet
 
 
-class RecipeShuffle(Choice):
-    """Enable production building recipe shuffle. This includes glade events as well, such as the flawless buildings. Can skip Crude Workstation and/or Makeshift Post for less frustrating seeds.
+class RecipeShuffle(OptionSet):
+    """Enable production building recipe shuffle. This includes glade events as well, such as the flawless buildings.
+    Can skip Crude Workstation and/or Makeshift Post and/or Field Kitchen for less frustrating seeds.
+
+    Alternatively, if you only want to shuffle your essential blueprints among each other, you can do that by excepting
+    them without enabling shuffle. This will not shuffle other recipes into your essential blueprints.
     
-    Options: vanilla, exclude_crude_ws_and_ms_post, exclude_crude_ws, exclude_ms_post, full_shuffle"""
+    Options: Disable, Except Crude Workstation, Except Makeshift Post, Except Field Kitchen"""
     display_name = "Recipe Shuffle"
-    option_vanilla = 0
-    option_exclude_crude_ws_and_ms_post = 1
-    option_exclude_crude_ws = 2
-    option_exclude_ms_post = 3
-    option_full_shuffle = 4
-    default = 0
+    valid_keys = {
+        "Full Shuffle",
+        "Except Crude Workstation",
+        "Except Makeshift Post",
+        "Except Field Kitchen"
+    }
 
 
 class ShuffleDuplicates(Choice):
@@ -28,7 +32,7 @@ class ShuffleDuplicates(Choice):
     option_essential = 1
     option_many = 2
     default = 0
-
+r
 
 class DuplicatesAcquired(Choice):
     """When you get a duplicate item, what happens to it? No effect if Shuffle Duplicates is Off and no two Progressive
