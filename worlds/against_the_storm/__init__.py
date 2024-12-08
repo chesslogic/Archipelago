@@ -34,6 +34,8 @@ class AgainstTheStormWorld(World):
         self.championship_places = 0
         self.championship_location_indices: list[int] = []
         self.production_recipes: Dict[str, List[List]] = {}
+        self.progressive_complex_food_order: list[str] = \
+            ["Porridge", "Jerky", "Pie", "Skewers", "Paste", "Pickled Goods", "Biscuits"]
         self.filler_items: List[str] = []
 
     def are_recipes_beatable(self, production_recipes: Dict[str, List[List]]):
@@ -75,10 +77,16 @@ class AgainstTheStormWorld(World):
             logging.warning(
                 f"[Against the Storm] Fewer locations than items detected in options, increased reputation_locations_per_biome to {self.options.reputation_locations_per_biome.value} to fit all items")
 
+        # Reputation shuffle
         self.included_location_indices = get_new_rep_indices(self.options.reputation_locations_per_biome.value)
         self.championship_places = self.options.total_biomes_by_top_performance.value
         self.championship_location_indices = (
             get_new_rep_indices(self.options.reputation_locations_per_biome_by_top_performance.value))
+
+        # Progressive shuffle
+        if self.options.progressive_complex_food.value == self.options.progressive_complex_food.option_random:
+            self.progressive_complex_food_order =(
+                sample(self.progressive_complex_food_order, len(self.progressive_complex_food_order)))
 
         # Recipe shuffle
         all_production = {}
@@ -263,6 +271,7 @@ class AgainstTheStormWorld(World):
         return {
             "recipe_shuffle": 4 if "Enable" in self.options.recipe_shuffle.value else 0,
             "recipe_shuffle_map": self.options.recipe_shuffle.value,
+            "duplicates_acquired": self.options.duplicates_acquired.value,
             "deathlink": self.options.deathlink.value,
             "blueprint_items": self.options.blueprint_items.value,
             "continue_blueprints_for_reputation": self.options.continue_blueprints_for_reputation.value,
@@ -270,7 +279,9 @@ class AgainstTheStormWorld(World):
             "required_seal_tasks": self.options.required_seal_tasks.value,
             "enable_dlc": self.options.enable_dlc.value,
             "rep_location_indices": self.included_location_indices,
-            "production_recipes": self.production_recipes
+            "rep_performance_location_indices": self.championship_location_indices,
+            "production_recipes": self.production_recipes,
+            "progressive_complex_food_order": self.progressive_complex_food_order
         }
 
 
