@@ -7,7 +7,7 @@ class RecipeShuffle(OptionSet):
     Can skip Crude Workstation and/or Makeshift Post and/or Field Kitchen for less frustrating seeds.
 
     Alternatively, if you only want to shuffle your essential blueprints among each other, you can do that by excepting
-    them without enabling shuffle. This will not shuffle other recipes into your essential blueprints.
+    them while leaving shuffle disabled. This only shuffles essential recipes; no high-star recipes are in their pool.
     
     Options: Disable, Except Crude Workstation, Except Makeshift Post, Except Field Kitchen"""
     display_name = "Recipe Shuffle"
