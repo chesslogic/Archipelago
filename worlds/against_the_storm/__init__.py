@@ -158,8 +158,8 @@ class AgainstTheStormWorld(World):
                         itempool.append(item_key)
 
         # Shuffle duplicates
-        essentials = ["Amber", "Pipes", "Parts", "Purging Fire", "Packs of Provisions"]
-        extras = ["Planks", "Fiber", "Bricks", "Tools", "Packs of Crops"]
+        essentials = ["Amber", "Pipes", "Parts", "Purging Fire", "Pack of Provisions"]
+        extras = ["Planks", "Fiber", "Bricks", "Tools", "Pack of Crops"]
         if self.options.shuffle_duplicates.value > 0:
             itempool += essentials
             if self.options.shuffle_duplicates.value == self.options.shuffle_duplicates.option_essential.value:
