@@ -187,12 +187,15 @@ class ProgressiveGeneral(OptionSet):
 
     Guardian - Turns the 4 Guardian Parts into a single progressive sequence.
 
+    Archaeology - Locations. Turns the 3 fully reconstructed Archaeology Sites into a single progressive sequence. You
+    will have to reconstruct all 3 Sites, potentially across different settlements, to get all 3 items.
+
     Short Expedition - Amber, Pipes, Purging Fire, Packs of Provisions, Tools, Parts, Wildfire Essence, Ancient Tablets.
 
     Buildings - Planks, Fabric, Bricks, Parts.
 
-    Trade - Amber, Packs of Provisions, Packs of Trade Goods, Packs of Building Materials, Packs of Luxury Goods,
-    Packs of Crops.
+    Trade - Amber, Packs of Provisions, Packs of Building Materials, Packs of Crops, Packs of Trade Goods,
+    Packs of Luxury Goods.
 
     Metallurgy - Copper Bars, Scales, Copper Ore, Pipes, Tools, Parts.
 
@@ -201,6 +204,7 @@ class ProgressiveGeneral(OptionSet):
     display_name = "Progressive"
     valid_keys = {
         "Guardian",
+        "Archaeology",
         "Short Expedition",
         "Building",
         "Trade",
@@ -228,6 +232,22 @@ class ProgressiveComplexFood(Choice):
     option_cheap = 2
     default = 0
 
+v
+class Traps(OptionSet):
+    """Enable specific traps. This will remove any other traps."""
+    display_name = "Traps"
+    valid_keys = {
+        "Impatience",
+    }
+
+
+class TrapReplacementRate(Range):
+    """Set the percentage of traps in the pool. 100 will replace all filler with traps."""
+    display_name = "Trap Replacement Rate"
+    default = 100
+    range_start = 0
+    range_end = 100
+
 
 @dataclass
 class AgainstTheStormOptions(PerGameCommonOptions):
@@ -250,3 +270,5 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     extra_trade_locations: ExtraTradeLocations
     progressive: ProgressiveGeneral
     progressive_complex_food: ProgressiveComplexFood
+    traps: Traps
+    trap_replacement_rate: TrapReplacementRate

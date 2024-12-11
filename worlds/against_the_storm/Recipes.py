@@ -155,6 +155,7 @@ def has_blueprint_for(state: CollectionState, player: int, blueprint_map: Dict[s
     return any(any(good == recipe.product for recipe in blueprint_map[bp]) and
                (bp in essential_blueprints or state.has(bp, player)) for bp in blueprint_map.keys())
 
+
 def satisfies_recipe(state: CollectionState, player: int, blueprint_map: Dict[str, List[Recipe]] | None, recipe: list[str], debug = False) -> bool:
     # recipe is of the form ["A,B,C", "D,E"] meaning (A or B or C) and (D or E)
     for item_set in recipe:
@@ -174,3 +175,8 @@ def satisfies_recipe(state: CollectionState, player: int, blueprint_map: Dict[st
     if debug:
         print(recipe, "satisfied")
     return True
+
+
+def has_product(state: CollectionState, player: int, product: str) -> bool:
+    current_progressive_items = [] # TODO(chesslogic): calculate products from progressive items
+    return state.has(product, player) or product in current_progressive_items
