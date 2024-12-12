@@ -176,6 +176,21 @@ progressive_items = {
     "Progressive Fishing": ["Fish", "Algae", "Scales", "Pack of Crops", "Fishing Hut"],
 }
 
+
+def reverse_dict_of_arrays(dict_of_arrays):
+    reversed_dict = {}
+    for key, array in dict_of_arrays.items():
+        for index, element in enumerate(array):
+            if element in reversed_dict:
+                reversed_dict[element].append((index, key))
+            else:
+                reversed_dict[element] = [(index, key)]
+    return reversed_dict
+
+
+reversed_progressive_items = reverse_dict_of_arrays(progressive_items)
+
+
 def get_item_name_groups(item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]]):
     item_groups: Dict[str, Set[str]] = {}
     for item_key, (_ap_classification, _classification, item_group) in item_dict.items():

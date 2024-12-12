@@ -4,7 +4,7 @@ from itertools import chain
 from typing import Dict, List
 from BaseClasses import CollectionState
 
-from .Items import item_dict, progressive_items
+from .Items import item_dict, progressive_items, reversed_progressive_items
 
 
 @dataclass
@@ -183,6 +183,7 @@ def has_product(state: CollectionState, player: int, product: str) -> bool:
     for item in progressive_items:
         current_progressive_items[item] = state.count(item, player)
     granted_progressive_items = {}
-    # TODO(chesslogic): Produce progressive item lists from progressive settings and build granted_progressive_items
-
+    for origin in reversed_progressive_items[product]:
+        if origin[1] in current_progressive_items and origin[0] <= current_progressive_items[origin[1]]:
+            granted_progressive_items[product] = current_progressive_items[product]
     return state.has(product, player) or product in granted_progressive_items
