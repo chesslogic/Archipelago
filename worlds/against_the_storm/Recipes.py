@@ -4,7 +4,8 @@ from itertools import chain
 from typing import Dict, List
 from BaseClasses import CollectionState
 
-from .Items import item_dict
+from .Items import item_dict, progressive_items
+
 
 @dataclass
 class Recipe:
@@ -178,5 +179,9 @@ def satisfies_recipe(state: CollectionState, player: int, blueprint_map: Dict[st
 
 
 def has_product(state: CollectionState, player: int, product: str) -> bool:
-    current_progressive_items = [] # TODO(chesslogic): calculate products from progressive items
-    return state.has(product, player) or product in current_progressive_items
+    current_progressive_items = {}  # TODO(chesslogic): calculate products from progressive items
+    for item in progressive_items:
+        current_progressive_items[item] = state.count(item, player)
+    granted_progressive_items = {}
+    # TODO(chesslogic): Produce progressive item lists from progressive settings and build granted_progressive_items
+    return state.has(product, player) or product in granted_progressive_items

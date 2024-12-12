@@ -165,6 +165,16 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]] = {
     "Forum": (ItemClassification.progression, ATSItemClassification.dlc_blueprint, "Service Blueprint"),
 }
 
+progressive_items = [
+    "Progressive Guardian",
+    "Progressive Archaeology",
+    "Progressive Expedition",
+    "Progressive Building",
+    "Progressive Trade",
+    "Progressive Metallurgy",
+    "Progressive Fishing",
+]
+
 def get_item_name_groups(item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]]):
     item_groups: Dict[str, Set[str]] = {}
     for item_key, (_ap_classification, _classification, item_group) in item_dict.items():
