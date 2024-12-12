@@ -189,7 +189,7 @@ def reverse_dict_of_arrays(dict_of_arrays):
     return reversed_dict
 
 
-reversed_progressive_items = reverse_dict_of_arrays(progressive_items)
+items_indexed_by_progressive_source = reverse_dict_of_arrays(progressive_items)
 
 
 def get_item_name_groups(item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]]):
