@@ -165,15 +165,16 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]] = {
     "Forum": (ItemClassification.progression, ATSItemClassification.dlc_blueprint, "Service Blueprint"),
 }
 
-progressive_items = [
-    "Progressive Guardian",
-    "Progressive Archaeology",
-    "Progressive Expedition",
-    "Progressive Building",
-    "Progressive Trade",
-    "Progressive Metallurgy",
-    "Progressive Fishing",
-]
+progressive_items = {
+    "Progressive Guardian": ["Guardian Heart", "Guardian Blood", "Guardian Feathers", "Guardian Essence"],
+    "Progressive Expedition": ["Amber", "Pipes", "Purging Fire", "Pack of Provisions", "Tools", "Parts",
+                               "Wildfire Essence", "Ancient Tablets"],
+    "Progressive Building": ["Planks", "Fabric", "Bricks", "Parts"],
+    "Progressive Trade": ["Amber", "Pack of Provisions", "Pack of Building Materials", "Packs of Crops",
+                          "Pack of Trade Goods", "Pack of Luxury Goods"],
+    "Progressive Metallurgy": ["Copper Bars", "Scales", "Copper Ore", "Pipes", "Tools", "Parts"],
+    "Progressive Fishing": ["Fish", "Algae", "Scales", "Pack of Crops", "Fishing Hut"],
+}
 
 def get_item_name_groups(item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]]):
     item_groups: Dict[str, Set[str]] = {}
