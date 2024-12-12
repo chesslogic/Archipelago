@@ -232,7 +232,7 @@ class ProgressiveComplexFood(Choice):
     option_cheap = 2
     default = 0
 
-v
+
 class Traps(OptionSet):
     """Enable specific traps. This will remove any other traps."""
     display_name = "Traps"
