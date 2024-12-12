@@ -174,6 +174,7 @@ progressive_items = {
                           "Pack of Trade Goods", "Pack of Luxury Goods"],
     "Progressive Metallurgy": ["Copper Bars", "Scales", "Copper Ore", "Pipes", "Tools", "Parts"],
     "Progressive Fishing": ["Fish", "Algae", "Scales", "Pack of Crops", "Fishing Hut"],
+    "Progressive Complex Food": ["Porridge", "Jerky", "Pie", "Skewers", "Paste", "Pickled Goods", "Biscuits"],
 }
 
 
