@@ -104,11 +104,10 @@ class GroveExpeditionLocations(Range):
 
 class EnableReputationLocations(OptionSet):
     """Set the progressive Reputation Locations that will be enabled. Options are Biomes, Species, BiomeAndSpecies,
-    BiomesByTopPerformance, and Slurry. Enabling Biomes is strongly recommended and the presumed normal way to play
-    this mod. You may enable any number of options.
+    HighScore, and Slurry. You may enable any number of options.
 
     Biomes will generate locations up to Total Biomes times Reputation Locations Per Biome (plus 1 for victory), or 144
-    locations.
+    locations. Enabling Biomes is strongly recommended and the presumed way to play this mod.
 
     Species will generate locations up to Total Species Sets times Reputation Locations Per Species Set (plus 1 for
     victory), or 360 locations.
@@ -117,7 +116,7 @@ class EnableReputationLocations(OptionSet):
     Reputation Locations settings (plus 1 for victory), or 2880 locations. If you enable this option, consider also
     setting a moderate number of DistinctSettlements.
 
-    ByTopPerformance will generate locations up to the Total Biomes By Top Performance times the Reputation
+    HighScore will generate locations up to the Total Biomes By Top Performance times the Reputation
     Locations Per Biome (plus 1 for victory), or 144 locations.
 
     Slurry will generate locations up to the Reputation Slurry limit."""
@@ -126,18 +125,37 @@ class EnableReputationLocations(OptionSet):
         "Biomes",
         "Species",
         "BiomeAndSpecies",
-        "BiomesByTopPerformance",
+        "HighScore",
         "Slurry",
     }
+
+
+class ReputationLocations(Range):
+    """For each Enabled Reputation Location track, configures the number of locations spread between the 1st reputation
+    and victory (assumed to be at 18).
+
+    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
+    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. With the Biomes setting,
+
+    This option will be increased before generation with a warning to ensure enough locations for items, such as with
+    Blueprint Items on.
+
+    This setting is ignored if Biome and BiomeAndSpecies are disabled in the Enable Reputation Locations option and
+    the High Score Style is not Biome."""
+    display_name = "Reputation Locations"
+    default = 3
+    range_start = 1
+    range_end = 17
 
 
 class TotalBiomes(Range):
     """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 8, your
     Reputation locations will be distributed between Royal Woodlands, Cursed Royal Woodlands, Coral Forest, Scarlet
-    Orchard, and Marshlands, as well as the DLC biomes Coastal Grove and Ashen Thicket. You may need to visit each biome
-    to get all sphere 0 locations.
+    Orchard, and Marshlands, as well as the DLC biomes Coastal Grove and Ashen Thicket. You might visit "Royal Woodlands
+    - 1st Reputation" as well as "Scarlet Orchard - 1st Reputation".
 
-    In addition, you will always be expected to go to the Sealed Forest.
+    You will always be expected to go to the Sealed Forest. You may need to visit each biome to get all sphere 0
+    locations.
 
     If DLC is off, this can be no more than 6 and will be reduced if necessary.
 
@@ -148,60 +166,29 @@ class TotalBiomes(Range):
     range_end = 8
 
 
-class ReputationLocationsPerBiome(Range):
-    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome.
-    
-    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
-    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Royal Woodlands - 1st Reputation" as well
-    as "Scarlet Orchard - 1st Reputation".
-    
-    This option will be increased before generation with a warning to ensure enough locations for items, such as with
-    Blueprint Items on.
-
-    This setting is ignored if Biome and BiomeAndSpecies are disabled in the Enable Reputation Locations option and
-    the High Score Style is not Biome."""
-    display_name = "Reputation Locations Per Biome"
-    default = 3
-    range_start = 1
-    range_end = 17
-
-
 class TotalSpeciesSets(Range):
     """Set the maximum number of Species sets the player will be expected to visit. For example, if you set this to 3,
     your Reputation locations might be distributed between "Human Beaver Lizard", "Harpy Fox Frog", and "Harpy Beaver
-    Lizard".
+    Lizard". You might visit "Human Beaver Lizard - 1st Reputation" as well as "Harpy Fox Frog  - 1st Reputation".
 
     If DLC is off, this can be no more than 15 and will be reduced if necessary.
 
     This setting is ignored if Species and BiomeAndSpecies are disabled in the Enable Reputation Locations option."""
     display_name = "Total Species Sets"
-    default = 3
+    default = 4
     range_start = 1
     range_end = 20
-
-
-class ReputationLocationsPerSpeciesSet(Range):
-    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) for each set of 3
-    Species.
-
-    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
-    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard - 1st Reputation" as
-    well as "Harpy Fox Frog  - 1st Reputation".
-
-    This setting is ignored if Species and BiomeAndSpecies are disabled in the Enable Reputation Locations option and
-    the High Score Style is not Species."""
-    display_name = "Reputation Locations Per Species"
-    default = 3
-    range_start = 1
-    range_end = 17
 
 
 class DistinctSettlements(Range):
     """Set the maximum number of distinct settlements the player will be expected to visit. For example, if you set
     Total Biomes to 5 and this setting to 20, you may be expected to visit each biome with 4 different Species
-    configurations. Setting this lower may put more onerous expectations on your expedition configuration (such as
+    configurations. You might visit "Human Beaver Lizard on Marshlands - 1st Reputation" as well as "Harpy Fox Frog on
+    Royal Woodlands - 1st Reputation".
+
+    Setting this lower may put more onerous expectations on your expedition configuration (such as
     specific combinations of biome and Species), while setting this higher may reduce the number of Reputation locations
-    per settlement.
+    per settlement (and therefore your checks-per-minute).
 
     This option has a maximum of Total Biomes times Total Species Sets. If DLC is off, this can be no more than 90 and
     will be reduced if necessary.
@@ -211,22 +198,6 @@ class DistinctSettlements(Range):
     default = 6
     range_start = 2
     range_end = 160
-
-
-class ReputationLocationsPerBiomeAndSpecies(Range):
-    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome
-    and each set of 3 Species.
-
-    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
-    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard on Marshlands - 1st
-    Reputation" as well as "Harpy Fox Frog on Royal Woodlands - 1st Reputation".
-
-    This setting is ignored if BiomeAndSpecies is disabled in the Enable Reputation Locations option and the High Score
-    Style is not Biome And Species."""
-    display_name = "Reputation Locations Per Biome And Species"
-    default = 3
-    range_start = 1
-    range_end = 17
 
 
 class HighScoreStyle(Choice):
@@ -267,11 +238,12 @@ class ReputationLocationSlurry(Range):
     the Royal Woodlands, and another 5 in the Coral Forest, and then return to the Royal Woodlands, you would need to
     reach 6 Reputation to reach your next location, "11th Reputation".
 
-    If any other enabled option could have generated a Location, whether that Reputation index was an actual location,
-    it will also be counted in the slurry. For example, if you only have "Marshlands - 1st Reputation" and "Marshlands -
-    Victory", Reputation Slurry could still access up to 18 locations in the Marshlands.
+    If any Enabled Reputation Location could have generated a Location, whether that Reputation index was populated by
+    Reputation Locations, it will also be counted in the slurry. For example, if you only have "Marshlands - 1st
+    Reputation" and "Marshlands - Victory", Reputation Slurry could still access up to 18 locations in the Marshlands.
 
-    If DLC is off, this can be no more than 102 and will be reduced if necessary."""
+    If this is the only Enabled Reputation Location, it will determine the above behaviour using the High Score Style
+    setting."""
     display_name = "Reputation Location Slurry"
     default = 0
     range_start = 0
@@ -370,12 +342,10 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     enable_dlc: EnableDLC
     grove_expedition_locations: GroveExpeditionLocations
     enable_reputation_locations: EnableReputationLocations
+    reputation_locations: ReputationLocations
     total_biomes: TotalBiomes
-    reputation_locations_per_biome: ReputationLocationsPerBiome
     total_species_sets: TotalSpeciesSets
-    reputation_locations_per_species_set: ReputationLocationsPerSpeciesSet
     distinct_settlements: DistinctSettlements
-    reputation_locations_per_biome_and_species: ReputationLocationsPerBiomeAndSpecies
     high_score_style: HighScoreStyle
     total_high_score_places: TotalHighScorePlaces
     reputation_location_slurry: ReputationLocationSlurry
