@@ -115,7 +115,7 @@ class EnableReputationLocations(OptionSet):
     BiomeAndSpecies will generate locations up to the Total Biomes times the Total Species times the lesser of the two
     Reputation Locations settings (plus 1 for victory), or 2880 locations.
 
-    BiomesByTopPerformance will generate locations up to the Total Biomes By Top Performance times the Reputation
+    ByTopPerformance will generate locations up to the Total Biomes By Top Performance times the Reputation
     Locations Per Biome (plus 1 for victory), or 144 locations.
 
     Slurry will generate locations up to the Reputation Slurry limit."""
@@ -209,9 +209,24 @@ class ReputationLocationsPerBiomeAndSpecies(Range):
     range_end = 17
 
 
-class TotalBiomesByTopPerformance(Range):
-    """Set the maximum number of biomes the player will be expected to visit for high score purposes. uses the same
-    maximum Reputation Locations as Total Biomes.
+class TopPerformanceStyle(Choice):
+    """Set the Top Performance tracking style, which identifies how the player competes with past high scores. Options
+    are: "Settlement", "Biome", "Species", and "BiomeAndSpecies". When you achieve a new personal best among settlements
+    of the type you specify, you will achieve a location.
+
+    Settlement just means that you have achieved a new personal best in each settlement. Even if you use the exact same
+    settings 5 times in a row, you would achieve a new high score placement."""
+    display_name = "Top Performance Style"
+    option_settlement = 0
+    option_biome = 1
+    option_species = 2
+    option_biome_and_species = 3
+    default = 1
+
+
+class TotalTopPerformancePlaces(Range):
+    """Set the maximum number of places in the high score table the player will be expected to visit, e.g. "8th Place".
+    Uses the same maximum Reputation Locations as the corresponding setting based on Top Performance Style.
 
     For example, you might visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome
     acquire "2nd Biome - 1st Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to
@@ -219,7 +234,7 @@ class TotalBiomesByTopPerformance(Range):
     "2nd Biome" locations.
 
     If DLC is off, this can be no more than 6 and will be reduced if necessary."""
-    display_name = "Total Biomes By Top Performance"
+    display_name = "Total Top Performance Places"
     default = 0
     range_start = 0
     range_end = 8
@@ -232,6 +247,10 @@ class ReputationLocationSlurry(Range):
     For example, you might visit "1st Reputation" and then much later "69th Reputation". If you reach 5 reputation in
     the Royal Woodlands, and another 5 in the Coral Forest, and then return to the Royal Woodlands, you would need to
     reach 6 Reputation to reach your next location, "11th Reputation".
+
+    If any other enabled option could have generated a Location, whether that Reputation index was an actual location,
+    it will also be counted in the slurry. For example, if you only have "Marshlands - 1st Reputation" and "Marshlands -
+    Victory", Reputation Slurry could still access up to 18 locations in the Marshlands.
 
     If DLC is off, this can be no more than 102 and will be reduced if necessary."""
     display_name = "Reputation Location Slurry"
@@ -331,11 +350,16 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     required_seal_tasks: RequiredSealTasks
     enable_dlc: EnableDLC
     grove_expedition_locations: GroveExpeditionLocations
+    enable_reputation_locations: EnableReputationLocations
     total_biomes: TotalBiomes
     reputation_locations_per_biome: ReputationLocationsPerBiome
+    total_species_sets: TotalSpeciesSets
+    reputation_locations_per_species_set: ReputationLocationsPerSpeciesSet
+    distinct_settlements: DistinctSettlements
+    reputation_locations_per_biome_and_species: ReputationLocationsPerBiomeAndSpecies
+    top_performance_style: TopPerformanceStyle
+    total_top_performance_places: TotalTopPerformancePlaces
     reputation_location_slurry: ReputationLocationSlurry
-    total_biomes_by_top_performance: TotalBiomesByTopPerformance
-    reputation_locations_per_biome_by_top_performance: ReputationLocationsPerBiomeByTopPerformance
     extra_trade_locations: ExtraTradeLocations
     progressive: ProgressiveGeneral
     progressive_complex_food: ProgressiveComplexFood
