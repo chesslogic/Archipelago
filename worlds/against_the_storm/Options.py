@@ -104,7 +104,8 @@ class GroveExpeditionLocations(Range):
 
 class EnableReputationLocations(OptionSet):
     """Set the progressive Reputation Locations that will be enabled. Options are Biomes, Species, BiomeAndSpecies,
-    BiomesByTopPerformance, and Slurry. Enabling Biomes is strongly recommended.
+    BiomesByTopPerformance, and Slurry. Enabling Biomes is strongly recommended and the presumed normal way to play
+    this mod. You may enable any number of options.
 
     Biomes will generate locations up to Total Biomes times Reputation Locations Per Biome (plus 1 for victory), or 144
     locations.
@@ -113,7 +114,8 @@ class EnableReputationLocations(OptionSet):
     victory), or 360 locations.
 
     BiomeAndSpecies will generate locations up to the Total Biomes times the Total Species times the lesser of the two
-    Reputation Locations settings (plus 1 for victory), or 2880 locations.
+    Reputation Locations settings (plus 1 for victory), or 2880 locations. If you enable this option, consider also
+    setting a moderate number of DistinctSettlements.
 
     ByTopPerformance will generate locations up to the Total Biomes By Top Performance times the Reputation
     Locations Per Biome (plus 1 for victory), or 144 locations.
@@ -137,7 +139,9 @@ class TotalBiomes(Range):
 
     In addition, you will always be expected to go to the Sealed Forest.
 
-    If DLC is off, this can be no more than 6 and will be reduced if necessary."""
+    If DLC is off, this can be no more than 6 and will be reduced if necessary.
+
+    This setting is ignored if Biome and BiomeAndSpecies are disabled in the Enable Reputation Locations option."""
     display_name = "Total Biomes"
     default = 8
     range_start = 1
@@ -152,7 +156,10 @@ class ReputationLocationsPerBiome(Range):
     as "Scarlet Orchard - 1st Reputation".
     
     This option will be increased before generation with a warning to ensure enough locations for items, such as with
-    Blueprint Items on."""
+    Blueprint Items on.
+
+    This setting is ignored if Biome and BiomeAndSpecies are disabled in the Enable Reputation Locations option and
+    the High Score Style is not Biome."""
     display_name = "Reputation Locations Per Biome"
     default = 3
     range_start = 1
@@ -162,7 +169,11 @@ class ReputationLocationsPerBiome(Range):
 class TotalSpeciesSets(Range):
     """Set the maximum number of Species sets the player will be expected to visit. For example, if you set this to 3,
     your Reputation locations might be distributed between "Human Beaver Lizard", "Harpy Fox Frog", and "Harpy Beaver
-    Lizard"."""
+    Lizard".
+
+    If DLC is off, this can be no more than 15 and will be reduced if necessary.
+
+    This setting is ignored if Species and BiomeAndSpecies are disabled in the Enable Reputation Locations option."""
     display_name = "Total Species Sets"
     default = 3
     range_start = 1
@@ -175,7 +186,10 @@ class ReputationLocationsPerSpeciesSet(Range):
 
     For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
     locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard - 1st Reputation" as
-    well as "Harpy Fox Frog  - 1st Reputation"."""
+    well as "Harpy Fox Frog  - 1st Reputation".
+
+    This setting is ignored if Species and BiomeAndSpecies are disabled in the Enable Reputation Locations option and
+    the High Score Style is not Species."""
     display_name = "Reputation Locations Per Species"
     default = 3
     range_start = 1
@@ -184,12 +198,15 @@ class ReputationLocationsPerSpeciesSet(Range):
 
 class DistinctSettlements(Range):
     """Set the maximum number of distinct settlements the player will be expected to visit. For example, if you set
-    Total Biomes to 5 and this setting to 20, you will be expected to visit each biome with 4 different Species
+    Total Biomes to 5 and this setting to 20, you may be expected to visit each biome with 4 different Species
     configurations. Setting this lower may put more onerous expectations on your expedition configuration (such as
     specific combinations of biome and Species), while setting this higher may reduce the number of Reputation locations
     per settlement.
 
-    This setting will be ignored if BiomeAndSpecies is disabled."""
+    This option has a maximum of Total Biomes times Total Species Sets. If DLC is off, this can be no more than 90 and
+    will be reduced if necessary.
+
+    This setting is ignored if BiomeAndSpecies is disabled in the Enable Reputation Locations option."""
     display_name = "Distinct Settlements"
     default = 6
     range_start = 2
@@ -202,21 +219,29 @@ class ReputationLocationsPerBiomeAndSpecies(Range):
 
     For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
     locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard on Marshlands - 1st
-    Reputation" as well as "Harpy Fox Frog on Royal Woodlands - 1st Reputation"."""
+    Reputation" as well as "Harpy Fox Frog on Royal Woodlands - 1st Reputation".
+
+    This setting is ignored if BiomeAndSpecies is disabled in the Enable Reputation Locations option and the High Score
+    Style is not Biome And Species."""
     display_name = "Reputation Locations Per Biome And Species"
     default = 3
     range_start = 1
     range_end = 17
 
 
-class TopPerformanceStyle(Choice):
-    """Set the Top Performance tracking style, which identifies how the player competes with past high scores. Options
-    are: "Settlement", "Biome", "Species", and "BiomeAndSpecies". When you achieve a new personal best among settlements
-    of the type you specify, you will achieve a location.
+class HighScoreStyle(Choice):
+    """Set the Top Performance tracking style, which identifies how the player competes with past high scores. When you
+    achieve a new personal best among settlements of the type you specify, you will achieve a location.
 
-    Settlement just means that you have achieved a new personal best in each settlement. Even if you use the exact same
-    settings 5 times in a row, you would achieve a new high score placement."""
-    display_name = "Top Performance Style"
+    Options are: "Settlement", "Biome", "Species", and "BiomeAndSpecies". Settlement allows a new personal best in each
+    settlement. Even if you use the exact same settings 5 times in a row, you would achieve a new high score placement.
+    The remainder are tied to their option, so Top Biome means you would need to change biomes to progress on 2nd Place.
+
+    For example, you might visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome
+    acquire "2nd Biome - 1st Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to
+    acquire "Gold Biome" locations in your new biome, while leaving to resume the previous biome would at first grant
+    "2nd Biome" locations."""
+    display_name = "High Score Style"
     option_settlement = 0
     option_biome = 1
     option_species = 2
@@ -224,20 +249,14 @@ class TopPerformanceStyle(Choice):
     default = 1
 
 
-class TotalTopPerformancePlaces(Range):
-    """Set the maximum number of places in the high score table the player will be expected to visit, e.g. "8th Place".
-    Uses the same maximum Reputation Locations as the corresponding setting based on Top Performance Style.
-
-    For example, you might visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome
-    acquire "2nd Biome - 1st Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to
-    acquire "Gold Biome" locations in your new biome, while leaving to resume the previous biome would at first grant
-    "2nd Biome" locations.
-
-    If DLC is off, this can be no more than 6 and will be reduced if necessary."""
-    display_name = "Total Top Performance Places"
-    default = 0
-    range_start = 0
-    range_end = 8
+class TotalHighScorePlaces(Range):
+    """Set the maximum number of places in the high score table the player will be expected to visit, e.g. "3rd Place -
+    1st Reputation". Uses the same maximum Reputation Locations as the corresponding setting, based on Top Performance
+    Style."""
+    display_name = "Total High Score Places"
+    default = 1
+    range_start = 1
+    range_end = 6
 
 
 class ReputationLocationSlurry(Range):
@@ -357,8 +376,8 @@ class AgainstTheStormOptions(PerGameCommonOptions):
     reputation_locations_per_species_set: ReputationLocationsPerSpeciesSet
     distinct_settlements: DistinctSettlements
     reputation_locations_per_biome_and_species: ReputationLocationsPerBiomeAndSpecies
-    top_performance_style: TopPerformanceStyle
-    total_top_performance_places: TotalTopPerformancePlaces
+    high_score_style: HighScoreStyle
+    total_high_score_places: TotalHighScorePlaces
     reputation_location_slurry: ReputationLocationSlurry
     extra_trade_locations: ExtraTradeLocations
     progressive: ProgressiveGeneral
