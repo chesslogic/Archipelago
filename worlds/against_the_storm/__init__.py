@@ -270,7 +270,7 @@ class AgainstTheStormWorld(World):
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
             "recipe_shuffle": 4 if "Enable" in self.options.recipe_shuffle.value else 0,
-            "recipe_shuffle_map": self.options.recipe_shuffle.value,
+            "recipe_shuffle_set": self.options.recipe_shuffle.value,  # Probably not necessary
             "duplicates_acquired": self.options.duplicates_acquired.value,
             "deathlink": self.options.deathlink.value,
             "blueprint_items": self.options.blueprint_items.value,
