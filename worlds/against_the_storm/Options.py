@@ -221,9 +221,9 @@ class HighScoreStyle(Choice):
 
 
 class TotalHighScorePlaces(Range):
-    """Set the maximum number of places in the high score table the player will be expected to visit, e.g. "3rd Place -
-    1st Reputation". Uses the same maximum Reputation Locations as the corresponding setting, based on Top Performance
-    Style."""
+    """Set the maximum number of places in the high score table the player will be expected to visit, e.g. "1st
+    Reputation - 3rd Place". Uses the same maximum Reputation Locations as the corresponding setting, based on High
+    Score Style."""
     display_name = "Total High Score Places"
     default = 1
     range_start = 1
@@ -239,8 +239,8 @@ class ReputationLocationSlurry(Range):
     reach 6 Reputation to reach your next location, "11th Reputation".
 
     If any Enabled Reputation Location could have generated a Location, whether that Reputation index was populated by
-    Reputation Locations, it will also be counted in the slurry. For example, if you only have "Marshlands - 1st
-    Reputation" and "Marshlands - Victory", Reputation Slurry could still access up to 18 locations in the Marshlands.
+    Reputation Locations, it will also be counted in the slurry. For example, if you only have "1st Reputation -
+    Marshlands" and "Victory - Marshlands", Reputation Slurry could still access up to 18 locations in the Marshlands.
 
     If this is the only Enabled Reputation Location, it will determine the above behaviour using the High Score Style
     setting."""
