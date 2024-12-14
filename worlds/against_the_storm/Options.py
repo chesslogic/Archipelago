@@ -102,6 +102,33 @@ class GroveExpeditionLocations(Range):
     range_end = 20
 
 
+class EnableReputationLocations(OptionSet):
+    """Set the progressive Reputation Locations that will be enabled. Options are Biomes, Species, BiomeAndSpecies,
+    BiomesByTopPerformance, and Slurry. Enabling Biomes is strongly recommended.
+
+    Biomes will generate locations up to Total Biomes times Reputation Locations Per Biome (plus 1 for victory), or 144
+    locations.
+
+    Species will generate locations up to Total Species Sets times Reputation Locations Per Species Set (plus 1 for
+    victory), or 360 locations.
+
+    BiomeAndSpecies will generate locations up to the Total Biomes times the Total Species times the lesser of the two
+    Reputation Locations settings (plus 1 for victory), or 2880 locations.
+
+    BiomesByTopPerformance will generate locations up to the Total Biomes By Top Performance times the Reputation
+    Locations Per Biome (plus 1 for victory), or 144 locations.
+
+    Slurry will generate locations up to the Reputation Slurry limit."""
+    display_name = "Enable Reputation Locations"
+    valid_keys = {
+        "Biomes",
+        "Species",
+        "BiomeAndSpecies",
+        "BiomesByTopPerformance",
+        "Slurry",
+    }
+
+
 class TotalBiomes(Range):
     """Set the maximum number of biomes the player will be expected to visit. For example, if you set this to 8, your
     Reputation locations will be distributed between Royal Woodlands, Cursed Royal Woodlands, Coral Forest, Scarlet
@@ -132,23 +159,59 @@ class ReputationLocationsPerBiome(Range):
     range_end = 17
 
 
-class ReputationLocationSlurry(Range):
-    """Adds a number of locations up to some N reputation. Progress through this slurry is still tracked individually by
-    biome, meaning you must still revisit individual biomes.
+class TotalSpeciesSets(Range):
+    """Set the maximum number of Species sets the player will be expected to visit. For example, if you set this to 3,
+    your Reputation locations might be distributed between "Human Beaver Lizard", "Harpy Fox Frog", and "Harpy Beaver
+    Lizard"."""
+    display_name = "Total Species Sets"
+    default = 3
+    range_start = 1
+    range_end = 20
 
-    For example, you might visit "1st Reputation" and then much later "69th Reputation". If you reach 5 reputation in
-    the Royal Woodlands, and another 5 in the Coral Forest, and then return to the Royal Woodlands, you would need to
-    reach 6 Reputation to reach your next location, "11th Reputation".
 
-    If DLC is off, this can be no more than 102 and will be reduced if necessary."""
-    display_name = "Reputation Location Slurry"
-    default = 0
-    range_start = 0
-    range_end = 136
+class ReputationLocationsPerSpeciesSet(Range):
+    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) for each set of 3
+    Species.
+
+    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
+    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard - 1st Reputation" as
+    well as "Harpy Fox Frog  - 1st Reputation"."""
+    display_name = "Reputation Locations Per Species"
+    default = 3
+    range_start = 1
+    range_end = 17
+
+
+class DistinctSettlements(Range):
+    """Set the maximum number of distinct settlements the player will be expected to visit. For example, if you set
+    Total Biomes to 5 and this setting to 20, you will be expected to visit each biome with 4 different Species
+    configurations. Setting this lower may put more onerous expectations on your expedition configuration (such as
+    specific combinations of biome and Species), while setting this higher may reduce the number of Reputation locations
+    per settlement.
+
+    This setting will be ignored if BiomeAndSpecies is disabled."""
+    display_name = "Distinct Settlements"
+    default = 6
+    range_start = 2
+    range_end = 160
+
+
+class ReputationLocationsPerBiomeAndSpecies(Range):
+    """Set the number of locations spread between the 1st reputation and victory (assumed to be at 18) in each biome
+    and each set of 3 Species.
+
+    For example, a setting of 1 will put locations at the 1st, 10th, and 18th rep, while a setting of 4 will put
+    locations at the 1st, 4th, 8th, 11th, 15th, and 18th rep. You might visit "Human Beaver Lizard on Marshlands - 1st
+    Reputation" as well as "Harpy Fox Frog on Royal Woodlands - 1st Reputation"."""
+    display_name = "Reputation Locations Per Biome And Species"
+    default = 3
+    range_start = 1
+    range_end = 17
 
 
 class TotalBiomesByTopPerformance(Range):
-    """Set the maximum number of biomes the player will be expected to visit for high score purposes.
+    """Set the maximum number of biomes the player will be expected to visit for high score purposes. uses the same
+    maximum Reputation Locations as Total Biomes.
 
     For example, you might visit "Gold Biome - 1st Reputation", then leave the settlement, and at your next biome
     acquire "2nd Biome - 1st Reputation" followed by "Gold Biome - 2nd Reputation". Note that you would then continue to
@@ -162,13 +225,19 @@ class TotalBiomesByTopPerformance(Range):
     range_end = 8
 
 
-class ReputationLocationsPerBiomeByTopPerformance(Range):
-    """As Reputation Locations Per Biome, but your progress in each is tracked agnostic to biome name. Disabled if Total
-    Biomes By Top Performance is 0."""
-    display_name = "Reputation Locations Per Biome By Top Performance"
-    default = 3
-    range_start = 1
-    range_end = 17
+class ReputationLocationSlurry(Range):
+    """Adds a number of locations up to some N reputation. Progress through this slurry is still tracked individually by
+    the other conditions you've enabled, such as by biome, meaning you must still revisit individual biomes.
+
+    For example, you might visit "1st Reputation" and then much later "69th Reputation". If you reach 5 reputation in
+    the Royal Woodlands, and another 5 in the Coral Forest, and then return to the Royal Woodlands, you would need to
+    reach 6 Reputation to reach your next location, "11th Reputation".
+
+    If DLC is off, this can be no more than 102 and will be reduced if necessary."""
+    display_name = "Reputation Location Slurry"
+    default = 0
+    range_start = 0
+    range_end = 136
 
 
 class ExtraTradeLocations(Range):
