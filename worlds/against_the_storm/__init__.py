@@ -2,6 +2,7 @@ from random import randrange, sample
 import re
 import logging
 from typing import Any, Dict, List, Tuple
+from itertools import combinations
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule
 from BaseClasses import CollectionState, MultiWorld, Region
@@ -60,17 +61,27 @@ class AgainstTheStormWorld(World):
         return True
 
     def generate_early(self):
-        base_locations = [name for (name, (classification, _logic)) in location_dict.items() if
-                          classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
-
         species = ["Human", "Beaver", "Lizard", "Harpy", "Fox"]
         if self.options.enable_dlc:
             species.append("Frog")
-        generated_locations = generate_species_combination_locations(species)
+        
+        selected_combinations = self.select_species_combinations(
+            species, 
+            min(self.options.total_species_sets, 20 if self.options.enable_dlc else 15)
+        )
+        
+        generated_locations = self.generate_species_combination_locations(species, selected_combinations)
+
+        base_locations = [name for (name, (classification, _logic)) in location_dict.items() if
+                          classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
+
         base_locations.update(generated_locations)
 
-        total_location_count = len(base_locations) + self.options.reputation_locations_per_biome.value * self.get_biome_count() + \
-            self.options.extra_trade_locations.value + (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
+        total_location_count = len(base_locations) + \
+            self.options.reputation_locations_per_biome.value * \
+            self.get_biome_count() + \
+            self.options.extra_trade_locations.value + \
+            (self.options.grove_expedition_locations if self.options.enable_dlc else 0)
         total_item_count = len([name for (name, (_class, classification, _item_group)) in item_dict.items() if
                                 classification == ATSItemClassification.good or
                                 classification == ATSItemClassification.guardian_part and self.options.seal_items or
@@ -302,8 +313,53 @@ def get_new_rep_indices(num_indices: int):
         reps.append(round(1 + (i + 1) * (17 / (num_indices + 1))))
     return reps
 
-def generate_species_combination_locations(species_list: List[str]) -> Dict[str, Tuple[ATSLocationClassification, List[str]]]:
-    """Generate location definitions for all valid three-species combinations."""
+def select_species_combinations(species_list: List[str], total_sets: int) -> List[Tuple[str, str, str]]:
+    """Select species combinations ensuring relatively even distribution of species."""
+    
+    # Get all possible 3-species combinations
+    all_combinations = list(combinations(species_list, 3))
+    
+    if total_sets >= len(all_combinations):
+        return all_combinations
+        
+    # Count species occurrences for scoring combinations
+    def score_combination(selected_combos: List[Tuple[str, str, str]], new_combo: Tuple[str, str, str]) -> int:
+        species_counts = {species: 0 for species in species_list}
+        # Count existing selections
+        for combo in selected_combos:
+            for species in combo:
+                species_counts[species] += 1
+        # Add potential new combination
+        for species in new_combo:
+            species_counts[species] += 1
+        # Lower score is better (less variance in species distribution)
+        return max(species_counts.values()) - min(species_counts.values())
+    
+    selected_combinations = []
+    # Start with a random combination
+    selected_combinations.append(all_combinations.pop(randrange(len(all_combinations))))
+    
+    # Select remaining combinations
+    while len(selected_combinations) < total_sets:
+        best_score = float('inf')
+        best_combo = None
+        best_index = 0
+        
+        # Try each remaining combination
+        for i, combo in enumerate(all_combinations):
+            score = score_combination(selected_combinations, combo)
+            if score < best_score:
+                best_score = score
+                best_combo = combo
+                best_index = i
+                
+        selected_combinations.append(best_combo)
+        all_combinations.pop(best_index)
+    
+    return selected_combinations
+
+def generate_species_combination_locations(selected_combinations: List[Tuple[str, str, str]]) -> Dict[str, Tuple[ATSLocationClassification, List[str]]]:
+    """Generate location definitions for all selected three-species combinations."""
     
     # Define base preferences for each species
     species_preferences = {
@@ -342,13 +398,12 @@ def generate_species_combination_locations(species_list: List[str]) -> Dict[str,
     locations = {}
     
     # Generate all 3-species combinations
-    from itertools import combinations
-    for species_combo in combinations(species_list, 3):
+    for combo in selected_combinations:
         # Get union of building materials
         buildings = set()
         foods = set()
         services = set()
-        for species in species_combo:
+        for species in combo:
             buildings.update(species_preferences[species]["building"])
             foods.update(species_preferences[species]["food"])
             services.update(species_preferences[species]["service"])
@@ -357,14 +412,14 @@ def generate_species_combination_locations(species_list: List[str]) -> Dict[str,
         loved_foods = set()
         loved_services = set()
         for food in foods:
-            if sum(1 for species in species_combo if food in species_preferences[species]["food"]) >= 2:
+            if sum(1 for species in combo if food in species_preferences[species]["food"]) >= 2:
                 loved_foods.add(food)
         for service in services:
-            if sum(1 for species in species_combo if service in species_preferences[species]["service"]) >= 2:
+            if sum(1 for species in combo if service in species_preferences[species]["service"]) >= 2:
                 loved_services.add(service)
 
         # Generate location name and requirements
-        combo_name = " ".join(species_combo)
+        combo_name = " ".join(combo)
         locations[combo_name] = (
             ATSLocationClassification.basic,
             [
