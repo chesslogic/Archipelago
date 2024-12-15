@@ -184,6 +184,7 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     # Fox - Planks, Crystallized Dew; Pickled Goods, Porridge, Skewers; Incense, Tea
     # Frog - Bricks; Paste, Pie, Porridge; Training Gear, Incense, Wine
 
+    # Food - If 2+ of the same food, we "Love" that food; we NEED a loved food for the last 3 reputation levels
     # Biscuits - Beaver, Human
     # Jerky - Lizard, Harpy
     # Porridge - Human, Fox, Frog
@@ -192,9 +193,11 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     # Pie - Human, Lizard, Frog
     # Pickled Goods - Beaver, Fox, Lizard
 
-    # Bricks - Lizard, Frog
-    # Fabric - Human, Harpy, Lizard
-    # Planks - Beaver, Fox, Human, Harpy
+    # Housing
+    # Bricks - Human, Lizard, Frog
+    # Fabric - Harpy, Lizard
+    # Planks - Beaver, Fox, Human
+
 
     # Ale - Human, Beaver
     # Training Gear - Lizard, Frog

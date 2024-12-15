@@ -43,7 +43,8 @@ class DuplicatesAcquired(Choice):
     Resources: Each additional copy you get is converted into an amount of Starting Resources corresponding to its type.
 
     Productive: Each additional copy you get gives you a 10% chance to double your yield (from ALL sources, after ALL
-    modifiers, once embarked!). May not affect Progressive items and does not accelerate cornerstone progress."""
+    modifiers, once embarked!). Certain items become thematic Perks (Amber -> Bed and Breakfast).
+    May not affect all Progressive items and never accelerates cornerstone progress (e.g. Spices)."""
     display_name = "Duplicates Acquired"
     option_first = 0
     option_resources = 1

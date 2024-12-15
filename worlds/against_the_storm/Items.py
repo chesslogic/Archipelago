@@ -96,7 +96,22 @@ item_dict: Dict[str, Tuple[ItemClassification, ATSItemClassification, str]] = {
     "10 Starting Planks": (ItemClassification.filler, ATSItemClassification.filler, None),
     "10 Starting Tools": (ItemClassification.filler, ATSItemClassification.filler, None),
     "Survivor Bonding": (ItemClassification.filler, ATSItemClassification.filler, None),
- 
+    "Crowded Houses": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Economic Migration": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Generous Gifts": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Reinforced Axes": (ItemClassification.filler, ATSItemClassification.filler, None),  # the 15% variant
+    "Safe Haven": (ItemClassification.filler, ATSItemClassification.filler, None),  # probably stronger than the rest
+    "Badge of Courage": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Beneficial Agreement": (ItemClassification.filler, ATSItemClassification.filler, None),  # 15% trader arrival
+    "Drizzle Totem": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Clearance Totem": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Storm Shield": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Export Specialization": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Makeshift Water Tank": (ItemClassification.filler, ATSItemClassification.filler, None), 
+    "Obsidian Sickles": (ItemClassification.filler, ATSItemClassification.filler, None),  # and Seed Pouch?
+    "Seized Inheritance": (ItemClassification.filler, ATSItemClassification.filler, None),
+    "Blood Price Contract": (ItemClassification.filler, ATSItemClassification.filler, None),
+
     "Forager's Camp": (ItemClassification.progression, ATSItemClassification.blueprint, "Gathering Blueprint"),
     "Herbalist's Camp": (ItemClassification.progression, ATSItemClassification.blueprint, "Gathering Blueprint"),
     "Trapper's Camp": (ItemClassification.progression, ATSItemClassification.blueprint, "Gathering Blueprint"),
