@@ -2,16 +2,15 @@ from random import randrange, sample
 import re
 import logging
 from typing import Any, Dict, List, Tuple
-from itertools import combinations
 from worlds.AutoWorld import World
 from worlds.generic.Rules import set_rule
 from BaseClasses import CollectionState, MultiWorld, Region
 
 from .Items import ATSItemClassification, AgainstTheStormItem, get_item_name_groups, item_dict
 from .Locations import ATSLocationClassification, AgainstTheStormLocation, get_location_name_groups, location_dict
-from .Options import AgainstTheStormOptions, RecipeShuffle
+from .Options import AgainstTheStormOptions
 from .Recipes import satisfies_recipe, blueprint_recipes, nonitem_blueprint_recipes, essential_blueprints
-
+from .LocationsSpecies import select_species_combinations, generate_species_combination_locations
 
 class AgainstTheStormWorld(World):
     """
@@ -65,12 +64,11 @@ class AgainstTheStormWorld(World):
         if self.options.enable_dlc:
             species.append("Frog")
         
-        selected_combinations = self.select_species_combinations(
+        selected_combinations = select_species_combinations(
             species, 
             min(self.options.total_species_sets, 20 if self.options.enable_dlc else 15)
         )
-        
-        generated_locations = self.generate_species_combination_locations(species, selected_combinations)
+        generated_locations = generate_species_combination_locations(selected_combinations)
 
         base_locations = [name for (name, (classification, _logic)) in location_dict.items() if
                           classification == ATSLocationClassification.basic or classification == ATSLocationClassification.dlc and self.options.enable_dlc]
@@ -312,121 +310,3 @@ def get_new_rep_indices(num_indices: int):
     for i in range(num_indices):
         reps.append(round(1 + (i + 1) * (17 / (num_indices + 1))))
     return reps
-
-def select_species_combinations(species_list: List[str], total_sets: int) -> List[Tuple[str, str, str]]:
-    """Select species combinations ensuring relatively even distribution of species."""
-    
-    # Get all possible 3-species combinations
-    all_combinations = list(combinations(species_list, 3))
-    
-    if total_sets >= len(all_combinations):
-        return all_combinations
-        
-    # Count species occurrences for scoring combinations
-    def score_combination(selected_combos: List[Tuple[str, str, str]], new_combo: Tuple[str, str, str]) -> int:
-        species_counts = {species: 0 for species in species_list}
-        # Count existing selections
-        for combo in selected_combos:
-            for species in combo:
-                species_counts[species] += 1
-        # Add potential new combination
-        for species in new_combo:
-            species_counts[species] += 1
-        # Lower score is better (less variance in species distribution)
-        return max(species_counts.values()) - min(species_counts.values())
-    
-    selected_combinations = []
-    # Start with a random combination
-    selected_combinations.append(all_combinations.pop(randrange(len(all_combinations))))
-    
-    # Select remaining combinations
-    while len(selected_combinations) < total_sets:
-        best_score = float('inf')
-        best_combo = None
-        best_index = 0
-        
-        # Try each remaining combination
-        for i, combo in enumerate(all_combinations):
-            score = score_combination(selected_combinations, combo)
-            if score < best_score:
-                best_score = score
-                best_combo = combo
-                best_index = i
-                
-        selected_combinations.append(best_combo)
-        all_combinations.pop(best_index)
-    
-    return selected_combinations
-
-def generate_species_combination_locations(selected_combinations: List[Tuple[str, str, str]]) -> Dict[str, Tuple[ATSLocationClassification, List[str]]]:
-    """Generate location definitions for all selected three-species combinations."""
-    
-    # Define base preferences for each species
-    species_preferences = {
-        "Human": {
-            "building": ["Planks", "Bricks"],
-            "food": ["Biscuits", "Pie", "Porridge"],
-            "service": ["Ale", "Incense"]
-        },
-        "Beaver": {
-            "building": ["Planks"],
-            "food": ["Biscuits", "Pickled Goods"],
-            "service": ["Ale", "Scrolls", "Wine"]
-        },
-        "Lizard": {
-            "building": ["Bricks", "Fabric"],
-            "food": ["Jerky", "Pickled Goods", "Pie", "Skewers"],
-            "service": ["Training Gear"]
-        },
-        "Harpy": {
-            "building": ["Fabric"],
-            "food": ["Jerky", "Paste"],
-            "service": ["Scrolls", "Tea"]
-        },
-        "Fox": {
-            "building": ["Planks", "Crystallized Dew"],
-            "food": ["Pickled Goods", "Porridge", "Skewers"],
-            "service": ["Incense", "Tea"]
-        },
-        "Frog": {
-            "building": ["Bricks"],
-            "food": ["Paste", "Pie", "Porridge"],
-            "service": ["Training Gear", "Incense", "Wine"]
-        }
-    }
-
-    locations = {}
-    
-    # Generate all 3-species combinations
-    for combo in selected_combinations:
-        # Get union of building materials
-        buildings = set()
-        foods = set()
-        services = set()
-        for species in combo:
-            buildings.update(species_preferences[species]["building"])
-            foods.update(species_preferences[species]["food"])
-            services.update(species_preferences[species]["service"])
-        
-        # Get intersections (loved items - shared by 2+ species)
-        loved_foods = set()
-        loved_services = set()
-        for food in foods:
-            if sum(1 for species in combo if food in species_preferences[species]["food"]) >= 2:
-                loved_foods.add(food)
-        for service in services:
-            if sum(1 for species in combo if service in species_preferences[species]["service"]) >= 2:
-                loved_services.add(service)
-
-        # Generate location name and requirements
-        combo_name = " ".join(combo)
-        locations[combo_name] = (
-            ATSLocationClassification.basic,
-            [
-                ", ".join(sorted(buildings)),
-                ", ".join(sorted(foods)) + f" - Loves {', '.join(sorted(loved_foods))}" if loved_foods else ", ".join(sorted(foods)),
-                ", ".join(sorted(services)) + f" - Loves {', '.join(sorted(loved_services))}" if loved_services else ", ".join(sorted(services))
-            ]
-        )
-
-    return locations
