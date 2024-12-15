@@ -198,7 +198,7 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     # Fabric - Harpy, Lizard
     # Planks - Beaver, Fox, Human
 
-
+    # Services - If 2+ of the same service, we "Love" that service; we NEED a Loved service for the Victory reputation level (except Human Lizard Harpy which has no Loved service)
     # Ale - Human, Beaver
     # Training Gear - Lizard, Frog
     # Incense - Human, Fox, Frog
@@ -209,7 +209,7 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     # Human Beaver Lizard
     # Planks, Bricks, Fabric
     # Jerky, Porridge, Skewers, Biscuits, Pie, Pickled Goods - Loves Biscuits, Pie, Pickled Goods
-    # Ale, Training Gear, Incense, Scrolls, Wine
+    # Ale, Training Gear, Incense, Scrolls, Wine - Loves Ale
     "1st Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, [], "Human Beaver Lizard"),
     "2nd Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Lizard"),
     "3rd Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Lizard"),
@@ -227,11 +227,11 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     "15th Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Lizard"),
     "16th Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Lizard"),
     "17th Reputation - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Lizard"),
-    "Victory - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Lizard"),
+    "Victory - Human Beaver Lizard": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale", "Purging Fire"], "Human Beaver Lizard"),
     # Human Beaver Harpy
     # Planks, Bricks, Fabric
     # Jerky, Porridge, Biscuits, Pie, Pickled Goods, Paste - Loves Biscuits
-    # Ale, Incense, Scrolls, Wine, Tea
+    # Ale, Incense, Scrolls, Wine, Tea - Loves Ale, Scrolls
     "1st Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, [], "Human Beaver Harpy"),
     "2nd Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Harpy"),
     "3rd Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Harpy"),
@@ -249,11 +249,11 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     "15th Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Jerky,Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Harpy"),
     "16th Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Harpy"),
     "17th Reputation - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Harpy"),
-    "Victory - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Harpy"),
+    "Victory - Human Beaver Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Biscuits", "Amber,Tools", "Ale,Scrolls", "Purging Fire"], "Human Beaver Harpy"),
     # Human Beaver Fox
     # Planks, Bricks
     # Porridge, Skewers, Biscuits, Pie, Pickled Goods - Loves Porridge, Biscuits, Pickled Goods
-    # Ale, Incense, Scrolls, Wine, Tea
+    # Ale, Incense, Scrolls, Wine, Tea - Loves Ale, Incense
     "1st Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, [], "Human Beaver Fox"),
     "2nd Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Fox"),
     "3rd Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Fox"),
@@ -271,11 +271,11 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     "15th Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Skewers,Biscuits,Pie,Pickled Goods", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Fox"),
     "16th Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pickled Goods", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Fox"),
     "17th Reputation - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pickled Goods", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Fox"),
-    "Victory - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pickled Goods", "Amber,Tools", "Ale,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Beaver Fox"),
+    "Victory - Human Beaver Fox": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pickled Goods", "Amber,Tools", "Ale,Incense,Tea", "Purging Fire"], "Human Beaver Fox"),
     # Human Beaver Frog
     # Planks, Bricks
     # Porridge, Biscuits, Pie, Pickled Goods, Paste - Loves Porridge, Pie, Biscuits
-    # Ale, Training Gear, Incense, Scrolls, Wine
+    # Ale, Training Gear, Incense, Scrolls, Wine - Loves Ale, Incense, Wine
     "1st Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, [], "Human Beaver Frog"),
     "2nd Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Frog"),
     "3rd Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Beaver Frog"),
@@ -293,12 +293,103 @@ location_dict: Dict[str, Tuple[ATSLocationClassification, str]] = {
     "15th Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Frog"),
     "16th Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Frog"),
     "17th Reputation - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Frog"),
-    "Victory - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine", "Purging Fire"], "Human Beaver Frog"),
+    "Victory - Human Beaver Frog": (ATSLocationClassification.species_rep, ["Planks", "Bricks", "Fabric", "Porridge,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Incense,Wine", "Purging Fire"], "Human Beaver Frog"),
     # Human Lizard Harpy
     # Planks, Bricks, Fabric
     # Jerky, Porridge, Skewers, Biscuits, Pie, Pickled Goods, Paste - loves Jerky, Pie
-    # Ale, Training Gear, Incense, Scrolls, Wine, Tea
+    # Ale, Training Gear, Incense, Scrolls, Wine, Tea - Does not love anything
     "1st Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, [], "Human Lizard Harpy"),
+    "2nd Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Lizard Harpy"),
+    "3rd Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Lizard Harpy"),
+    "4th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks,Bricks,Fabric", "Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"], "Human Lizard Harpy"),
+    "5th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks,Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Purging Fire"], "Human Lizard Harpy"),
+    "6th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks,Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Purging Fire"], "Human Lizard Harpy"),
+    "7th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks,Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Purging Fire"], "Human Lizard Harpy"),
+    "8th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Purging Fire"], "Human Lizard Harpy"),
+    "9th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Purging Fire"], "Human Lizard Harpy"),
+    "10th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools,Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "11th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools,Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "12th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools,Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "13th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools,Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "14th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "15th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "16th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "17th Reputation - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    "Victory - Human Lizard Harpy": (ATSLocationClassification.species_rep, ["Planks", "Bricks,Fabric", "Jerky,Porridge,Skewers,Biscuits,Pie,Pickled Goods,Paste", "Amber,Tools", "Ale,Training Gear,Incense,Scrolls,Wine,Tea", "Purging Fire"], "Human Lizard Harpy"),
+    # Human Lizard Fox
+    # Planks, Bricks, Fabric
+    # Jerky, Porridge, Skewers, Biscuits, Pie, Pickled Goods - Loves Porridge, Pie, Skewers, Pickled Goods
+    # Ale, Training Gear, Incense, Tea - Loves Incense
+
+    # Human Lizard Frog
+    # Planks, Bricks, Fabric
+    # Jerky, Porridge, Skewers, Biscuits, Pie, Pickled Goods, Paste - Loves Porridge, Pie
+    # Ale, Training Gear, Incense, Wine - Loves Training Gear, Incense
+
+    # Human Harpy Fox
+    # Planks, Bricks, Fabric
+    # Jerky, Porridge, Skewers, Biscuits, Pie, Pickled Goods, Paste - Loves Porridge
+    # Ale, Incense, Scrolls, Tea - Loves Incense, Tea
+
+    # Human Harpy Frog
+    # Planks, Bricks, Fabric
+    # Jerky, Porridge, Biscuits, Pie, Paste - Loves Porridge, Pie, Paste
+    # Ale, Training Gear, Incense, Scrolls, Wine, Tea - Loves Incense
+
+    # Human Fox Frog
+    # Planks, Bricks
+    # Porridge, Skewers, Biscuits, Pie, Pickled Goods, Paste - Loves Porridge, Pie
+    # Ale, Training Gear, Incense, Wine, Tea - Loves Incense
+
+    # Beaver Lizard Harpy
+    # Planks, Bricks, Fabric
+    # Jerky, Biscuits, Pickled Goods, Pie, Skewers, Paste - Loves Jerky, Pickled Goods
+    # Training Gear, Scrolls, Wine, Tea - Loves Scrolls
+
+    # Beaver Lizard Fox
+    # Planks, Bricks, Fabric
+    # Jerky, Skewers, Biscuits, Pickled Goods, Porridge - Loves Pickled Goods, Skewers
+    # Training Gear, Scrolls, Wine, Tea, Incense - Does not love anything
+
+    # Beaver Lizard Frog
+    # Planks, Bricks, Fabric
+    # Jerky, Skewers, Biscuits, Pickled Goods, Pie, Paste, Porridge - Loves Pie, Pickled Goods
+    # Training Gear, Scrolls, Wine - Loves Training Gear, Wine
+
+    # Beaver Harpy Fox
+    # Planks, Fabric
+    # Porridge, Jerky, Biscuits, Pickled Goods, Paste, Skewers - Loves Pickled Goods
+    # Scrolls, Wine, Tea - Loves Scrolls, Tea
+
+    # Beaver Harpy Frog
+    # Planks, Bricks, Fabric
+    # Porridge, Jerky, Biscuits, Pickled Goods, Paste, Pie - Loves Paste
+    # Ale, Training Gear, Scrolls, Incense, Wine, Tea - Loves Scrolls, Wine
+
+    # Beaver Fox Frog
+    # Planks, Bricks
+    # Porridge, Skewers, Biscuits, Pickled Goods, Paste, Pie - Loves Porridge, Pickled Goods
+    # Ale, Training Gear, Scrolls, Incense, Wine, Tea - Loves Incense, Wine
+
+    # Lizard Harpy Fox
+    # Planks, Bricks, Fabric
+    # Porridge, Jerky, Skewers, Pickled Goods, Pie, Paste - Loves Jerky, Skewers
+    # Training Gear, Scrolls, Tea - Loves Tea
+
+    # Lizard Harpy Frog
+    # Bricks, Fabric
+    # Jerky, Skewers, Pickled Goods, Paste, Pie - Loves Jerky, Paste
+    # Training Gear, Scrolls, Tea, Wine - Loves Training Gear
+
+    # Lizard Fox Frog
+    # Planks, Bricks, Fabric
+    # Skewers, Pickled Goods, Paste, Porridge, Pie - Loves Skewers, Pie
+    # Training Gear, Incense, Tea, Wine - Loves Training Gear, Incense
+
+    # Harpy Fox Frog
+    # Bricks, Fabric
+    # Jerky, Paste, Porridge, Skewers, Pickled Goods, Pie - Loves Porridge, Paste
+    # Training Gear, Scrolls, Tea, Incense, Wine - Loves Tea, Incense, Wine
 
     "Trade - 75 Berries": (ATSLocationClassification.extra_trade, ["Berries"], "Trade Routes"),
     "Trade - 75 Eggs": (ATSLocationClassification.extra_trade, ["Eggs"], "Trade Routes"),
