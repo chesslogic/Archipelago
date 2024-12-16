@@ -90,37 +90,78 @@ def generate_species_combination_locations(selected_combinations: List[Tuple[str
     
     # Generate all 3-species combinations
     for combo in selected_combinations:
-        # Get union of building materials
-        buildings = set()
-        foods = set()
-        services = set()
-        for species in combo:
-            buildings.update(species_preferences[species]["building"])
-            foods.update(species_preferences[species]["food"])
-            services.update(species_preferences[species]["service"])
-        
-        # Get intersections (loved items - shared by 2+ species)
-        loved_foods = set()
-        loved_services = set()
-        for food in foods:
-            if sum(1 for species in combo if food in species_preferences[species]["food"]) >= 2:
-                loved_foods.add(food)
-        for service in services:
-            if sum(1 for species in combo if service in species_preferences[species]["service"]) >= 2:
-                loved_services.add(service)
-
+        related_items = getRelatedItems(combo, species_preferences)
         # Generate location name and requirements
         combo_name = " ".join(combo)
-        locations[combo_name] = (
-            ATSLocationClassification.basic,
-            [
-                ", ".join(sorted(buildings)),
-                ", ".join(sorted(foods)) + f" - Loves {', '.join(sorted(loved_foods))}" if loved_foods else ", ".join(sorted(foods)),
-                ", ".join(sorted(services)) + f" - Loves {', '.join(sorted(loved_services))}" if loved_services else ", ".join(sorted(services))
-            ]
-        )
+        for rep_index in range(len(locations) + 2): # 18 is the last rep level, leading to Victory
+            # TODO(chesslogic): Determine which Rep level is needed for this Rep Index, some subset of 1..17
+            ordinal = "st" if rep_index == 0 else "nd" if rep_index == 1 else "rd" if rep_index == 2 else "th"
+            rep_name = f"{rep_index + 1}{ordinal} Reputation - {combo_name}"
+            if rep_index == 18:
+                rep_name = f"Victory - {combo_name}"
+
+            needed_items = getRequiredItems(combo, related_items, rep_index)
+            locations[rep_name] = (ATSLocationClassification.species_rep,needed_items)
 
     return locations
+
+def getRelatedItems(combo: Tuple[str, str, str], species_preferences: Dict[str, Dict[str, List[str]]]) -> List[str]:
+    # Get union of building materials
+    buildings = set()
+    foods = set()
+    services = set()
+    for species in combo:
+        buildings.update(species_preferences[species]["building"])
+        foods.update(species_preferences[species]["food"])
+        services.update(species_preferences[species]["service"])
+    
+    # Get intersections (loved items - shared by 2+ species)
+    loved_foods = set()
+    loved_services = set()
+    for food in foods:
+        if sum(1 for species in combo if food in species_preferences[species]["food"]) >= 2:
+            loved_foods.add(food)
+    for service in services:
+        if sum(1 for species in combo if service in species_preferences[species]["service"]) >= 2:
+            loved_services.add(service)
+
+    return {
+        "buildings": buildings,
+        "foods": foods,
+        "services": services,
+        "loved_foods": loved_foods,
+        "loved_services": loved_services
+    }
+
+def getRequiredItems(combo: Tuple[str, str, str], related_items: Dict[str, List[str]], rep_index: int) -> List[str]:
+    """Get the items required for the given species combination and reputation index."""
+    # TODO(chesslogic): For the current reputation, decide which buildings, foods, and services are needed.
+    # This means, for each GROUP where ANY are sufficient: ",".join(sorted(GROUP))
+    # But we will need a number of GROUPS, starting with a Building and a Food. Later, multiple buildings, foods, and services are necessary.
+    buildings_list = []
+    foods_list = []
+    services_list = []
+    # Buildings
+    if rep_index > 12:
+        buildings_list += ["Planks", "Bricks", "Fabric"]
+    if rep_index > 8:
+        other_buildings = filter(lambda b: b != "Planks", sorted(related_items["buildings"]))
+        buildings_list += ["Planks", ",".join(other_buildings)]
+    if rep_index > 4:
+        buildings_list += [",".join(sorted(related_items["buildings"]))]
+    if rep_index > 15:
+        foods_list += [",".join(sorted(related_items["loved_foods"]))]
+    if rep_index > 5:
+        foods_list += [",".join(sorted(related_items["foods"]))]
+    if rep_index > 1:
+        # Everyone has the same basic food needs
+        foods_list += ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"]
+    if rep_index > 15:
+        services_list += [",".join(sorted(related_items["loved_services"]))]
+    if rep_index > 1:
+        services_list += [",".join(sorted(related_items["services"]))]
+    
+    return []
 
     # Human - Planks, Bricks; Biscuits, Pie, Porridge; Ale, Incense
     # Beaver - Planks; Biscuits, Pickled Goods; Ale, Scrolls, Wine
