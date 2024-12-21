@@ -157,6 +157,7 @@ def getRequiredItems(combo: Tuple[str, str, str], related_items: Dict[str, List[
         # Everyone has the same basic food needs
         foods_list += ["Berries,Eggs,Insects,Meat,Mushrooms,Roots,Vegetables,Fish"]
     if rep_index > 15:
+        # TODO(chesslogic): Some groups of species have no Loved services, if empty, add each service individually
         services_list += [",".join(sorted(related_items["loved_services"]))]
     if rep_index > 1:
         services_list += [",".join(sorted(related_items["services"]))]
