@@ -1,0 +1,256 @@
+name: APMW Projector Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Fork branch, tag, or commit to build
+        required: true
+        default: checks_mate
+        type: string
+      release_tag:
+        description: apmw-projector-v* tag to publish
+        required: true
+        type: string
+      prerelease:
+        description: Publish as a prerelease candidate
+        required: true
+        default: true
+        type: boolean
+
+permissions: {}
+
+concurrency:
+  group: apmw-projector-release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ github.repository == 'chesslogic/Archipelago' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      source_commit: ${{ steps.release.outputs.source_commit }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
+    steps:
+      - name: Checkout repository metadata
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve immutable projector source
+        id: release
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SOURCE_REF}" ]]; then
+            echo "A source ref is required." >&2
+            exit 1
+          fi
+          if [[ ! "${RELEASE_TAG}" =~ ^apmw-projector-v[0-9A-Za-z.+-]+$ ]]; then
+            echo "Invalid projector release tag: ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+
+          encoded_ref="$(
+            python -c \
+              'import os, urllib.parse; print(urllib.parse.quote(os.environ["SOURCE_REF"], safe=""))'
+          )"
+          source_commit="$(
+            gh api \
+              "repos/${GITHUB_REPOSITORY}/commits/${encoded_ref}" \
+              --jq .sha
+          )"
+          if [[ ! "${source_commit}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Source ref did not resolve to a full commit: ${SOURCE_REF}" >&2
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+            current_tag_commit="$(git rev-list -n 1 "${RELEASE_TAG}^{commit}")"
+            if [[ "${current_tag_commit}" != "${source_commit}" ]]; then
+              echo "Existing tag does not select the resolved source commit: ${RELEASE_TAG}" >&2
+              exit 1
+            fi
+          fi
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release already exists and will not be replaced: ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          if [[ "${PRERELEASE}" != "true" && "${PRERELEASE}" != "false" ]]; then
+            echo "Invalid prerelease value: ${PRERELEASE}" >&2
+            exit 1
+          fi
+
+          echo "release_tag=${RELEASE_TAG}" >> "${GITHUB_OUTPUT}"
+          echo "source_commit=${source_commit}" >> "${GITHUB_OUTPUT}"
+          echo "prerelease=${PRERELEASE}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    needs: prepare
+    if: ${{ github.repository == 'chesslogic/Archipelago' }}
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x86, x64]
+    steps:
+      - name: Checkout resolved source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_commit }}
+          fetch-depth: 1
+
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.7'
+          architecture: ${{ matrix.architecture }}
+
+      - name: Install pinned freezer
+        run: >-
+          python -m pip install
+          --disable-pip-version-check
+          --require-hashes
+          -r worlds\checksmate\tools\apmw_projector_build_requirements.txt
+
+      - name: Test canonical projector
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            -s worlds/checksmate/test \
+            -p 'TestApmw*.py'
+          python -m unittest discover \
+            -s worlds/checksmate/test \
+            -p 'TestSemanticProjectionV2.py'
+
+      - name: Freeze projector
+        run: >-
+          python worlds\checksmate\tools\build_apmw_projector.py
+          --output dist\apmw-projector-windows-${{ matrix.architecture }}
+
+      - name: Smoke frozen projector
+        run: >-
+          python worlds\checksmate\tools\smoke_apmw_projector.py
+          --executable
+          dist\apmw-projector-windows-${{ matrix.architecture }}\ApmwProjector.exe
+
+      - name: Archive immutable build
+        shell: pwsh
+        run: |
+          $architecture = '${{ matrix.architecture }}'
+          $buildDirectory = "dist\apmw-projector-windows-$architecture"
+          $archive = "dist\apmw-projector-windows-$architecture.zip"
+          $manifest = "dist\apmw-projector-windows-$architecture-manifest.json"
+          Copy-Item "$buildDirectory\apmw-projector-manifest.json" $manifest
+          Compress-Archive -Path "$buildDirectory\*" -DestinationPath $archive -CompressionLevel Optimal
+
+      - name: Upload same-workflow build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apmw-projector-windows-${{ matrix.architecture }}
+          path: |
+            dist/apmw-projector-windows-${{ matrix.architecture }}.zip
+            dist/apmw-projector-windows-${{ matrix.architecture }}-manifest.json
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [prepare, build]
+    if: ${{ github.repository == 'chesslogic/Archipelago' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout resolved source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_commit }}
+          fetch-depth: 1
+
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.7'
+
+      - name: Download same-workflow builds
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: apmw-projector-windows-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create release manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python worlds/checksmate/tools/create_apmw_projector_release_manifest.py \
+            --input dist/apmw-projector-windows-x86-manifest.json dist/apmw-projector-windows-x86.zip \
+            --input dist/apmw-projector-windows-x64-manifest.json dist/apmw-projector-windows-x64.zip \
+            --source-repository "${GITHUB_REPOSITORY}" \
+            --source-commit "${{ needs.prepare.outputs.source_commit }}" \
+            --release-tag "${{ needs.prepare.outputs.release_tag }}" \
+            --output dist/apmw-projector-release.json
+
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            dist/apmw-projector-windows-x86.zip
+            dist/apmw-projector-windows-x64.zip
+            dist/apmw-projector-release.json
+
+      - name: Publish immutable GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          SOURCE_COMMIT: ${{ needs.prepare.outputs.source_commit }}
+        run: |
+          set -euo pipefail
+          if ! git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh api \
+              --method POST \
+              "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${RELEASE_TAG}" \
+              -f sha="${SOURCE_COMMIT}" \
+              >/dev/null
+          fi
+          git fetch --force origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          current_tag_commit="$(git rev-list -n 1 "${RELEASE_TAG}^{commit}")"
+          if [[ "${current_tag_commit}" != "${SOURCE_COMMIT}" ]]; then
+            echo "Projector tag moved after the build: ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release already exists and will not be replaced: ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          release_arguments=(
+            "${RELEASE_TAG}"
+            --repo "${GITHUB_REPOSITORY}"
+            --verify-tag
+            --title "APMW Projector ${RELEASE_TAG}"
+            --notes "Immutable APMW projection sidecar assets. Consumers must verify apmw-projector-release.json before execution."
+          )
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            release_arguments+=(--prerelease)
+          fi
+          gh release create "${release_arguments[@]}" \
+            dist/apmw-projector-windows-x86.zip \
+            dist/apmw-projector-windows-x64.zip \
+            dist/apmw-projector-release.json
