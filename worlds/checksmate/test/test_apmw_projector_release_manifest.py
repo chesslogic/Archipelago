@@ -38,8 +38,8 @@ SOURCE_REPOSITORY = "chesslogic/Archipelago"
 EXPECTED_PROJECTOR_METADATA = {
     "runtime_semantic_version": "0.1.0",
     "protocol_version": 1,
-    "contract_hash": "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
-    "minimum_client_version": "0.5.0",
+    "contract_hash": "91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c",
+    "minimum_client_version": "0.4.0",
 }
 
 
@@ -346,7 +346,7 @@ class TestApmwProjectorReleaseManifest(unittest.TestCase):
                     "runtime_semantic_version": RUNTIME_SEMANTIC_VERSION,
                     "protocol_version": PROTOCOL_VERSION,
                     "contract_hash": FROZEN_CONTRACT_HASH,
-                    "minimum_client_version": "0.5.0",
+                    "minimum_client_version": "0.4.0",
                     "target_platform": platform,
                     "target_architecture": architecture,
                     "executable_relative_path": "ApmwProjector.exe",

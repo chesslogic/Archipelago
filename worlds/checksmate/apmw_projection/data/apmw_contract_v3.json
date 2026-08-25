@@ -4,8 +4,8 @@
     "major": 3,
     "minor": 0
   },
-  "manifest_sha256": "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
-  "minimum_client_version": "0.5.0",
+  "manifest_sha256": "91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c",
+  "minimum_client_version": "0.4.0",
   "minor_compatibility": "same-or-older",
   "itemization_modes": [
     "legacy",

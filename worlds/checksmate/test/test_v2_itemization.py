@@ -278,10 +278,10 @@ class TestV2SlotDataAndMaterial(CMTestBase):
         self.assertEqual(UNLOCK_ITEM_ROLES, slot_data["geometry_unlock_items"])
         self.assertEqual(production_contract_document(), slot_data["apmw_contract"])
         self.assertEqual(contract.manifest_sha256, compute_manifest_sha256(production_contract_text()))
-        self.assertEqual("18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
+        self.assertEqual("91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c",
                          contract.manifest_sha256)
-        self.assertEqual("0.5.0", contract.minimum_client_version)
-        self.assertEqual("0.5.0", slot_data["required_chess_client_version"])
+        self.assertEqual("0.4.0", contract.minimum_client_version)
+        self.assertEqual("0.4.0", slot_data["required_chess_client_version"])
         fixture = (
             Path(__file__).parent
             / "fixtures"

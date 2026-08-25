@@ -4,11 +4,11 @@
 
 ## Required Software
 
-- Any ChecksMate client. Currently, a modified ChessV client is supported and can be accessed via
+- A compatible ChecksMate client. Currently, a modified ChessV client is supported and can be accessed via
   its [GitHub releases page](https://github.com/chesslogic/chessv/releases/latest) (latest version). The generated
-  game reports its minimum required client version to whichever client connects. Contract v3 worlds require client
-  0.5.0 or newer; client 0.4.0 supports contract v2 only and will reject a v3 world at the version gate. Always use
-  the newest client release available.
+  game reports its minimum required client version to whichever client connects. Board-series worlds and APMW
+  contract v3 will ship together with ChecksMate client 0.4.0, which these worlds advertise as their minimum. Use
+  client 0.4.0 or newer with them.
 - Archipelago from the [Archipelago Releases Page](https://github.com/ArchipelagoMW/Archipelago/releases/latest)
 
 Standalone APMW projector releases are built by a manual workflow owned by the

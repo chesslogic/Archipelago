@@ -20,8 +20,8 @@ from ..locations import (
 
 
 CHECKSMATE_ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_CONTRACT_HASH = "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2"
-EXPECTED_RESOURCE_SHA256 = "aedf52178f977a9a0dcfd7ae4c60a9c2f95c56e348fe454a1afeffaae7ca9085"
+EXPECTED_CONTRACT_HASH = "91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c"
+EXPECTED_RESOURCE_SHA256 = "de6ce977b7347d3390dffa81f9acc64636c6d1d8d7814468813a9423d5741514"
 EXPECTED_V2_CONTRACT_HASH = "f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15"
 EXPECTED_V2_RESOURCE_SHA256 = "56eb5e5e8ccfe69babd1fda0820a6e81497f542679a1061ba62488bb0f0518fb"
 EXPECTED_MAXIMA = {
@@ -139,9 +139,9 @@ class TestContractRuntimeConsistency(unittest.TestCase):
         metadata = json.loads(
             (CHECKSMATE_ROOT / "archipelago.json").read_text(encoding="utf-8")
         )
-        self.assertEqual("0.5.0", self.contract.minimum_client_version)
-        self.assertEqual("0.5.0", CMWorld.required_chess_client_version)
-        self.assertEqual("0.5.0", metadata["world_version"])
+        self.assertEqual("0.4.0", self.contract.minimum_client_version)
+        self.assertEqual("0.4.0", CMWorld.required_chess_client_version)
+        self.assertEqual("0.4.0", metadata["world_version"])
         self.assertEqual(
             "0.4.0",
             json.loads(

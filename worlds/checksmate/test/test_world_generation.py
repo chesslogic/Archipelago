@@ -169,7 +169,7 @@ class TestWorldGeneration(CMTestBase):
             "piece_upgrade_ratio": DEFAULT_PIECE_UPGRADE_RATIO,
             "pocket_limit_by_pocket": 4,
             "queen_piece_limit_by_type": 0,
-            "required_chess_client_version": "0.5.0",
+            "required_chess_client_version": "0.4.0",
         }
 
         self.assertEqual(expected_keys, set(slot_data))
@@ -178,9 +178,9 @@ class TestWorldGeneration(CMTestBase):
             {key: slot_data[key] for key in expected_options},
         )
         self.assertNotIn("piece_upgrade_proportion", slot_data)
-        self.assertEqual("18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
+        self.assertEqual("91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c",
                          slot_data["apmw_contract"]["manifest_sha256"])
-        self.assertEqual("0.5.0", slot_data["apmw_contract"]["minimum_client_version"])
+        self.assertEqual("0.4.0", slot_data["apmw_contract"]["minimum_client_version"])
         self.assertEqual(
             self.world.pool_accounting.used_count("Progressive Major To Queen"),
             slot_data["total_queens"],

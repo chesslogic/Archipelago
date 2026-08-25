@@ -49,8 +49,8 @@ checks are included.
 `Checkmate 6x8`, `Checkmate Minima`, `Checkmate Maxima`, `Checkmate 10x10`, and `Checkmate 12x10` for their matching
 end boards. The client and legacy contract still understand 12x12, but it is not currently selectable.
 
-New board-series worlds use APMW contract v3 and require ChecksMate client 0.5.0 or newer. Client 0.4.0 remains the
-minimum for legacy contract v2 worlds, but it does not parse contract v3.
+Board-series worlds use APMW contract v3. The world changes and client support will ship together in ChecksMate 0.4.0,
+which these worlds advertise as their minimum client version.
 
 ## What's the difference between Legacy and Fundamental itemization (Progression Itemization)?
 

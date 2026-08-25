@@ -50,7 +50,7 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures" / "projection-v2"
 CASES_FIXTURE = FIXTURE_DIR / "cases.json"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PROJECTOR_ENTRY = REPOSITORY_ROOT / "worlds" / "checksmate" / "tools" / "apmw_projector.py"
-EXPECTED_CONTRACT_HASH = "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2"
+EXPECTED_CONTRACT_HASH = "91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c"
 EXPECTED_PROTOCOL_VERSION = 1
 EXPECTED_RUNTIME_SEMANTIC_VERSION = "0.1.0"
 
@@ -130,7 +130,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
         request["request_id"] = "characterization"
         request["geometries"] = ["8x8"]
         expected_request = (
-            '{"contract_hash":"18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",'
+            '{"contract_hash":"91cf4323ae53663d1e3a7ea8facb449c74fdcd5093fa1620337f51cc5cdbe00c",'
             '"geometries":["8x8"],"input":{"item_counts":{"Progressive Pawn":8},'
             '"itemization":"legacy","ordering":"stable","seeds":{"major_seed":"404",'
             '"minor_seed":"303","pawn_seed":"202","pocket_seed":"101","queen_seed":"505"}},'
@@ -140,7 +140,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
         self.assertEqual(expected_request, canonical_json(request))
         response_text = canonical_json(handle_json_request(expected_request))
         self.assertEqual(
-            "7628b9dee115fc2a182e3ef089bcc69d10d62da610c1c7613a95ef3e63b4957d",
+            "605ff5b5e4890df6a4177827a63b9c2159593007402ad855b22858a7d5fc9473",
             hashlib.sha256(response_text.encode("ascii")).hexdigest(),
         )
         response = json.loads(response_text)
