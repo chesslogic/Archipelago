@@ -59,7 +59,7 @@ class ThresholdMixin:
 
 class TestLegacyThresholds(ThresholdMixin, CMTestBase):
     options = {
-        "goal": "progressive",
+        "max_board_size": "12x10",
         "difficulty": "grandmaster",
         "progression_itemization": "legacy",
     }
@@ -111,7 +111,7 @@ class TestLegacyThresholds(ThresholdMixin, CMTestBase):
 
 class TestFundamentalThresholds(ThresholdMixin, CMTestBase):
     options = {
-        "goal": "progressive",
+        "max_board_size": "12x10",
         "difficulty": "grandmaster",
         "progression_itemization": "fundamental",
     }

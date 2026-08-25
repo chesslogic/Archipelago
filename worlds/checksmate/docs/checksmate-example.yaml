@@ -7,6 +7,8 @@ description: 'Standard Chess pieces, moving in standard Chess ways, allowing man
 name: NoDumbPieces
 game: ChecksMate
 ChecksMate:
+  min_board_size: 8x8 # 6x8, 8x8, or 10x8
+  max_board_size: 12x10 # any board from 6x8 through 12x10 that is not smaller than the minimum
   early_material: off # this allows the generator to work out its own logical progression
   fairy_chess_pieces: fide # this excludes all fairy chess pieces, although you may see many rooks, or no bishops, etc
   fairy_chess_pawns: vanilla # this excludes Berolina pawns, so every pawn will be a traditional pawn
@@ -17,7 +19,8 @@ description: 'A vanilla army with no pockets, comprising 2 Bishops+Knights+Rooks
 name: Traditional
 game: ChecksMate
 ChecksMate:
-  goal: single
+  min_board_size: 8x8
+  max_board_size: 10x8
   difficulty: daily
   enable_tactics: all
   early_material: pawn # not counted against locked_items (this may be changed)
@@ -39,8 +42,9 @@ name: OopsAllPawns
 game: ChecksMate
 ChecksMate:
   # Near-maximum locked pawns do not efficiently satisfy larger-board material targets.
-  goal: single
-  difficulty: relaxed # raises material requirement for goal far beyond just 32 pawns, therefore, player will get a lot
+  min_board_size: 8x8
+  max_board_size: 10x8
+  difficulty: relaxed # raises the material requirement far beyond just 32 pawns, therefore, player will get a lot
   early_material: pawn
   fairy_chess_pieces: betza
   fairy_chess_pawns: vanilla
@@ -55,6 +59,8 @@ description: 'Chaos and pocket pieces'
 name: SleevedAce
 game: ChecksMate
 ChecksMate:
+  min_board_size: 8x8
+  max_board_size: 12x10
   difficulty: daily
   piece_types: chaos
   early_material: major
@@ -71,6 +77,8 @@ description: 'Weird Fairy Chess with opportunity to study the opening'
 name: DifferentArmy
 game: ChecksMate
 ChecksMate:
+  min_board_size: 8x8
+  max_board_size: 12x10
   difficulty: daily
   piece_locations: stable
   piece_types: stable
@@ -108,6 +116,8 @@ description: 'An even split between Minor and Major pawn upgrades, favored 1:2 o
 name: EvenHandedUpgrades
 game: ChecksMate
 ChecksMate:
+  min_board_size: 8x8
+  max_board_size: 12x10
   difficulty: daily
   fairy_chess_pieces: fide
   fairy_chess_pawns: vanilla
@@ -133,6 +143,8 @@ description: 'Many exotic royal pieces'
 name: PowerCouples
 game: ChecksMate
 ChecksMate:
+  min_board_size: 8x8
+  max_board_size: 12x10
   difficulty: daily
   piece_types: chaos
   early_material: major
@@ -155,11 +167,12 @@ ChecksMate:
 
 ---
 
-description: 'Skip the first half to learn the second half'
+description: 'Start with a developed army to focus on later material progression'
 name: Endgame
 game: ChecksMate
 ChecksMate:
-  goal: super
+  min_board_size: 8x8
+  max_board_size: 12x10
   difficulty: daily
   piece_types: chaos
   early_material: major

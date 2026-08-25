@@ -11,10 +11,10 @@ import sys
 from types import MappingProxyType
 from typing import Any
 
-from .contract import ApmwContractV2, parse_contract
+from .contract import ApmwContractV3, parse_contract
 
 
-CONTRACT_RESOURCE = "data/apmw_contract_v2.json"
+CONTRACT_RESOURCE = "data/apmw_contract_v3.json"
 UNLOCK_ITEM_ROLES = MappingProxyType(
     {
         "Board Files": "board-file-unlock",
@@ -37,11 +37,12 @@ def frozen_contract_text() -> str:
 
 
 @cache
-def load_frozen_contract() -> ApmwContractV2:
+def load_frozen_contract() -> ApmwContractV3:
     return parse_contract(frozen_contract_text())
 
 
 FROZEN_CONTRACT_HASH = load_frozen_contract().manifest_sha256
+MINIMUM_CLIENT_VERSION = load_frozen_contract().minimum_client_version
 
 
 def frozen_contract_document() -> dict[str, Any]:
@@ -55,7 +56,18 @@ def mode_item_maxima(itemization: str) -> Mapping[str, int]:
     contract = load_frozen_contract()
     maxima = dict(contract.effective_item_maxima["common"])
     maxima.update(contract.effective_item_maxima[itemization])
-    maxima.update({name: 2 for name in UNLOCK_ITEM_ROLES})
+    roles = {
+        role.role_id: role
+        for role in contract.geometry_unlocks.roles
+    }
+    maxima.update(
+        {
+            name: (
+                roles[role_id].maximum - roles[role_id].base
+            ) // roles[role_id].increment
+            for name, role_id in UNLOCK_ITEM_ROLES.items()
+        }
+    )
     return maxima
 
 

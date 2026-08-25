@@ -5,6 +5,8 @@ from .options import (
     FairyChessArmy,
     FairyChessPawns,
     FairyChessPieces,
+    MaxBoardSize,
+    MinBoardSize,
 )
 
 # These are the "one-click" presets shown on the player-options webpage dropdown. They intentionally reuse the
@@ -20,7 +22,8 @@ checksmate_option_presets: dict[str, dict[str, Any]] = {
     "No Dumb Pieces": {
         "fairy_chess_pieces": FairyChessPieces.option_fide,
         "fairy_chess_pawns": FairyChessPawns.option_vanilla,
-        "goal": 0,
+        "min_board_size": MinBoardSize.option_8x8,
+        "max_board_size": MaxBoardSize.option_10x8,
 
         "locked_items": {},
     },
@@ -28,7 +31,8 @@ checksmate_option_presets: dict[str, dict[str, Any]] = {
     # A vanilla army with no pockets, comprising 2 Bishops+Knights+Rooks, and 1 Queen (or Rook until upgraded)
     "Strict Traditional": {
         "difficulty": 0,  # excludes so many items that it can never get more than 45 material
-        "goal": 0,
+        "min_board_size": MinBoardSize.option_8x8,
+        "max_board_size": MaxBoardSize.option_10x8,
         "early_material": EarlyMaterial.option_pawn,  # not counted against locked_items (this may be changed)
 
         "max_engine_penalties": 5,
@@ -51,7 +55,8 @@ checksmate_option_presets: dict[str, dict[str, Any]] = {
     # Chaos and pocket pieces
     "Sleeved Ace": {
         "difficulty": 2,
-        "goal": 1,
+        "min_board_size": MinBoardSize.option_8x8,
+        "max_board_size": MaxBoardSize.option_12x10,
         "early_material": EarlyMaterial.option_pawn,
 
         "max_engine_penalties": 5,
@@ -73,7 +78,8 @@ checksmate_option_presets: dict[str, dict[str, Any]] = {
     # Weird Fairy Chess with opportunity to study the opening
     "Different Army": {
         "difficulty": 2,
-        "goal": 1,
+        "min_board_size": MinBoardSize.option_8x8,
+        "max_board_size": MaxBoardSize.option_12x10,
         "early_material": EarlyMaterial.option_piece,
 
         "max_engine_penalties": 5,
@@ -95,7 +101,8 @@ checksmate_option_presets: dict[str, dict[str, Any]] = {
     # Many exotic royal pieces
     "Power Couples": {
         "difficulty": 2,
-        "goal": 1,
+        "min_board_size": MinBoardSize.option_8x8,
+        "max_board_size": MaxBoardSize.option_12x10,
         "early_material": EarlyMaterial.option_major,
 
         "max_engine_penalties": 5,

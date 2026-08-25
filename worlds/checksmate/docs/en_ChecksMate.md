@@ -33,21 +33,24 @@ The player will receive either:
  - A King Upgrade, where your primary King (not Consuls) becomes a Mounted King and gains Knight movement
    - When you gain both King Upgrades, your primary King becomes a Hyper King and gains Nightrider (Knight slider) and Elephant (2x diagonal leaper) movement
 
-## What are the supported Goals?
+## How do board sizes and victory work?
 
- - Single: Checkmate your opponent on a normal 8x8 board. There is no board growth.
- - Ordered Progressive (the default): Checkmate on 8x8, then each checkmate grows the board (10x8, 10x10, 12x10,
-   12x12, in that fixed order). The Board Files/Board Ranks unlocks are locked directly to your own Checkmate
-   Minima/Maxima/10x10/12x10 checks rather than being shuffled into the general multiworld pool, so board growth
-   always follows this exact order. Checkmate on the final 12x12 board to win.
- - Progressive: As Ordered Progressive, but the Board Files/Board Ranks unlocks are ordinary shuffled items in the
-   multiworld pool, so which board grows next (and when, and for whom) can vary.
- - Super: As Progressive, but you start already holding the first Board Files unlock, skipping straight past 8x8;
-   later Board Files/Board Ranks unlocks still come from the shuffled pool.
+ - Minimum Board Size (`min_board_size`): choose `6x8`, `8x8` (the default), or `10x8`.
+ - Maximum Board Size (`max_board_size`): choose `6x8`, `8x8`, `10x8`, `10x10`, or `12x10` (the default).
 
-Larger boards also unlock their own harder checks (e.g. later Capture Pawn/Fork/Play Turns locations and the tougher
-Checkmate Maxima material target), so Goal affects both the victory condition and how much of the location pool you
-can reach.
+The minimum cannot be larger than the maximum. These bounds select an inclusive slice of `6x8`, `8x8`, `10x8`,
+`10x10`, then `12x10`. Each non-final checkmate grants the fixed transition event for the next board in the player's
+own world; board upgrades are not shuffled through the multiworld. Equal bounds create a single-board world with no
+geometry transition. Checkmate on the selected final board to win. The series also controls which board-specific
+checks are included.
+
+`Checkmate Minima` remains the stable name of the existing 8x8 checkmate location. When the 6x8 prologue is selected,
+`Checkmate 6x8` precedes it, so Minima is not necessarily the world's smallest board. The final locations are
+`Checkmate 6x8`, `Checkmate Minima`, `Checkmate Maxima`, `Checkmate 10x10`, and `Checkmate 12x10` for their matching
+end boards. The client and legacy contract still understand 12x12, but it is not currently selectable.
+
+New board-series worlds use APMW contract v3 and require ChecksMate client 0.5.0 or newer. Client 0.4.0 remains the
+minimum for legacy contract v2 worlds, but it does not parse contract v3.
 
 ## What's the difference between Legacy and Fundamental itemization (Progression Itemization)?
 

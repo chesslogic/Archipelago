@@ -23,18 +23,24 @@ from ..items import (
     item_name_groups,
     item_table,
 )
-from ..options import Goal, ProgressionItemization
+from ..options import MaxBoardSize, MinBoardSize, ProgressionItemization
 from ..rules import effective_castlers
-from ..locations import BoardStage, highest_chessmen_requirement_small
+from ..locations import (
+    BoardStage,
+    chessmen_requirement_for_world,
+    highest_chessmen_requirement_for_series,
+    tactics_mode_for_options,
+)
 
 
 class TestV2ItemizationUnit(CMMockTestCase):
-    def fundamental_world(self, goal=Goal.option_single):
+    def fundamental_world(self, start="8x8", end="12x10"):
         world = self.create_mock_world()
         world.options.progression_itemization = ProgressionItemization(
             ProgressionItemization.option_fundamental
         )
-        world.options.goal = Goal(goal)
+        world.options.min_board_size = MinBoardSize.from_any(start)
+        world.options.max_board_size = MaxBoardSize.from_any(end)
         return world
 
     def test_new_item_contract(self):
@@ -42,7 +48,7 @@ class TestV2ItemizationUnit(CMMockTestCase):
             "Chessmen": (4_901_008, 107, 100),
             "Material": (4_901_011, 321, 400),
             "Castler": (4_901_012, 2, 0),
-            "Board Files": (4_901_013, 2, 0),
+            "Board Files": (4_901_013, 3, 0),
             "Board Ranks": (4_901_014, 2, 0),
         }
         self.assertEqual(
@@ -74,60 +80,71 @@ class TestV2ItemizationUnit(CMMockTestCase):
         self.assertIn("Progressive Pocket", fundamental_pool)
 
     def test_fundamental_generation_conserves_pool_and_castler_prerequisites(self):
-        world = self.fundamental_world(Goal.option_progressive)
+        world = self.fundamental_world()
         pool = CMItemPool(world)
         items = pool.create_items()
         counts = Counter(item.name for item in items)
-        self.assertEqual(pool.get_max_items(True) - 1, len(items))
+        self.assertEqual(
+            pool.get_max_items() - 1 - len(world.geometry_progression.transitions),
+            len(items),
+        )
         self.assertFalse(LEGACY_MATERIAL_ITEMS & counts.keys())
         self.assertLessEqual(counts["Castler"], 2)
         self.assertGreaterEqual(counts["Chessmen"], counts["Castler"])
         self.assertGreaterEqual(counts["Material"] * 400, counts["Castler"] * 500)
-        self.assertEqual(2, counts["Board Files"])
-        self.assertEqual(2, counts["Board Ranks"])
+        self.assertEqual(0, counts["Board Files"])
+        self.assertEqual(0, counts["Board Ranks"])
 
-    def test_goal_first_unlock_behavior(self):
+    def test_board_series_first_unlock_behavior(self):
         expected = {
-            Goal.option_single: (0, 0, 0),
-            Goal.option_ordered_progressive: (0, 1, 0),
-            Goal.option_progressive: (2, 0, 0),
-            Goal.option_super: (1, 0, 1),
+            ("8x8", "10x8"): ("Checkmate Minima",),
+            ("8x8", "12x10"): (
+                "Checkmate Minima",
+                "Checkmate Maxima",
+                "Checkmate 10x10",
+            ),
+            ("6x8", "12x10"): (
+                "Checkmate 6x8",
+                "Checkmate Minima",
+                "Checkmate Maxima",
+                "Checkmate 10x10",
+            ),
         }
-        for goal, (pool_files, locked_files, precollected_files) in expected.items():
-            with self.subTest(goal=goal):
-                world = self.fundamental_world(goal)
+        for bounds, transition_locations in expected.items():
+            with self.subTest(bounds=bounds):
+                world = self.fundamental_world(*bounds)
                 items = CMItemPool(world).create_items()
-                locked = world.multiworld.get_location("Checkmate Minima", world.player).item
-                self.assertEqual(pool_files, sum(item.name == "Board Files" for item in items))
                 self.assertEqual(
-                    locked_files,
-                    int(locked is not None and locked.name == "Board Files"),
-                )
-                self.assertEqual(
-                    precollected_files,
+                    0,
                     sum(
-                        item.name == "Board Files"
-                        for item in world.multiworld.precollected_items[world.player]
+                        item.name in {"Board Files", "Board Ranks"}
+                        for item in items
                     ),
                 )
-                ranks = sum(item.name == "Board Ranks" for item in items)
                 self.assertEqual(
-                    0
-                    if goal in (Goal.option_single, Goal.option_ordered_progressive)
-                    else 2,
-                    ranks,
+                    len(transition_locations),
+                    sum(
+                        world.multiworld.get_location(
+                            name, world.player
+                        ).item is not None
+                        for name in transition_locations
+                    ),
+                )
+                self.assertEqual(
+                    0,
+                    len(world.multiworld.precollected_items[world.player]),
                 )
 
-        single = self.fundamental_world(Goal.option_single)
-        single.options.locked_items.value = {"Board Files": 2, "Board Ranks": 2}
+        world = self.fundamental_world()
+        world.options.locked_items.value = {"Board Files": 1}
         with self.assertRaisesRegex(
             OptionError,
-            "Board Files.*unavailable for goal 'single'",
+            "Board Files.*fixed board-series event",
         ):
-            CMItemPool(single).create_items()
+            CMItemPool(world).create_items()
 
     def test_valid_fundamental_locks_are_preserved_without_truncation(self):
-        world = self.fundamental_world(Goal.option_progressive)
+        world = self.fundamental_world()
         world.options.locked_items.value = {
             "Chessmen": 20,
             "Material": 20,
@@ -136,7 +153,12 @@ class TestV2ItemizationUnit(CMMockTestCase):
         pool = CMItemPool(world)
         items = pool.create_items()
         counts = Counter(item.name for item in items)
-        self.assertLessEqual(len(items), pool.get_max_items(True) - 1)
+        self.assertLessEqual(
+            len(items),
+            pool.get_max_items()
+            - 1
+            - len(world.geometry_progression.transitions),
+        )
         self.assertNotIn("Progressive Pawn", counts)
         self.assertGreaterEqual(counts["Chessmen"], 20)
         self.assertGreaterEqual(counts["Material"], 20)
@@ -189,12 +211,51 @@ class TestV2ItemizationUnit(CMMockTestCase):
         items = CMItemPool(world).create_items()
         counts = Counter(item.name for item in items)
 
-        self.assertEqual(15, highest_chessmen_requirement_small)
+        progression = world.geometry_progression
+        required_chessmen = highest_chessmen_requirement_for_series(
+            progression.stages[0].stage,
+            progression.endpoint.stage,
+            tactics_mode_for_options(world.options),
+        )
         self.assertGreaterEqual(
             counts["Chessmen"],
-            highest_chessmen_requirement_small,
+            required_chessmen,
         )
         self.assertGreater(counts["Material"], 0)
+
+    def test_item_removal_preserves_room_for_the_series_chessmen_requirement(self):
+        world = self.fundamental_world()
+        world.options.accessibility.value = 1
+        pool = CMItemPool(world)
+        pool.initialize_item_tracking()
+        required = chessmen_requirement_for_world(world)
+
+        self.assertTrue(
+            pool.should_remove_item(
+                "Material",
+                0,
+                item_table["Material"].material
+                + (required - 1) * item_table["Chessmen"].material,
+                [],
+                ["Material"],
+                {},
+            )
+        )
+
+        chessmen = [
+            world.create_item("Chessmen")
+            for _ in range(required - 1)
+        ]
+        self.assertFalse(
+            pool.should_remove_item(
+                "Chessmen",
+                (required - 1) * item_table["Chessmen"].material,
+                required * item_table["Chessmen"].material,
+                chessmen,
+                ["Chessmen"],
+                {},
+            )
+        )
 
     def test_fundamental_early_material_is_local_chessmen(self):
         world = self.fundamental_world()
@@ -217,14 +278,14 @@ class TestV2SlotDataAndMaterial(CMTestBase):
         self.assertEqual(UNLOCK_ITEM_ROLES, slot_data["geometry_unlock_items"])
         self.assertEqual(production_contract_document(), slot_data["apmw_contract"])
         self.assertEqual(contract.manifest_sha256, compute_manifest_sha256(production_contract_text()))
-        self.assertEqual("f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15",
+        self.assertEqual("18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
                          contract.manifest_sha256)
-        self.assertEqual("0.4.0", contract.minimum_client_version)
-        self.assertEqual("0.4.0", slot_data["required_chess_client_version"])
+        self.assertEqual("0.5.0", contract.minimum_client_version)
+        self.assertEqual("0.5.0", slot_data["required_chess_client_version"])
         fixture = (
             Path(__file__).parent
             / "fixtures"
-            / "projection-v2"
+            / "projection-v3"
             / "baseline.json"
         )
         self.assertEqual(
@@ -296,16 +357,22 @@ class TestFundamentalLockedOverflowWorld(CMTestBase):
     options = {
         "accessibility": "full",
         "enable_tactics": "turns",
-        "goal": "single",
+        "max_board_size": "10x8",
         "locked_items": {"Material": 10, "Chessmen": 10},
         "progression_itemization": "fundamental",
     }
 
     def test_full_access_valid_locks_fill_successfully(self):
         names = Counter(item.name for item in self.multiworld.itempool)
+        progression = self.world.geometry_progression
+        required_chessmen = highest_chessmen_requirement_for_series(
+            progression.stages[0].stage,
+            progression.endpoint.stage,
+            tactics_mode_for_options(self.world.options),
+        )
         self.assertGreaterEqual(
             names["Chessmen"],
-            highest_chessmen_requirement_small,
+            required_chessmen,
         )
         distribute_items_restrictive(self.multiworld)
         self.assertTrue(all(self.multiworld.get_spheres()))

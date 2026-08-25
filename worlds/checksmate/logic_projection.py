@@ -11,11 +11,13 @@ from BaseClasses import CollectionState
 from .item_utils import effective_fundamental_castlers, occupied_pockets
 from .items import ItemizationMode, itemization_mode
 from .locations import BoardStage, geometry_unlocks_for_stage, stage_id
+from .geometry_progression import geometry_for_stage
 from .options import resolve_piece_upgrade_preferences, resolve_piece_upgrade_ratio
-from .apmw_contract import ApmwContractV2, GeometryStage
+from .apmw_contract import ApmwContractV2, ApmwContractV3, GeometryStage
 from .contract_resource import load_production_contract, mode_item_maxima
 from .semantic_projection import (
     ItemCount,
+    GeometryBaseline,
     ProjectionInput,
     SemanticSeeds,
     UnlockCount,
@@ -62,12 +64,14 @@ class WorldLogicProjection:
         self,
         options,
         seeds: SemanticSeeds = SemanticSeeds(),
-        contract: ApmwContractV2 | None = None,
+        contract: ApmwContractV2 | ApmwContractV3 | None = None,
+        start_stage: BoardStage = BoardStage.Board6x8,
     ):
         self.options = options
         self.seeds = seeds
         self.contract = contract or load_production_contract()
         self.itemization = itemization_mode(options)
+        self.start_stage = BoardStage(start_stage)
         self.axes = (
             _FUNDAMENTAL_ENVELOPE_AXES
             if self.itemization is ItemizationMode.FUNDAMENTAL
@@ -220,6 +224,9 @@ class WorldLogicProjection:
             self._obtainable_king_promotions
         )
         return self.metrics_from_counts(counts, stage).material
+
+    def maximum_chessmen(self, stage: BoardStage) -> int:
+        return self.metrics_from_counts(self._obtainable, stage).chessmen
 
     def exact_active_material(
         self,
@@ -376,20 +383,28 @@ class WorldLogicProjection:
         stage: BoardStage,
     ) -> ProjectionInput:
         files, ranks = geometry_unlocks_for_stage(stage)
+        start_files, start_ranks = geometry_unlocks_for_stage(
+            self.start_stage
+        )
+        baseline = geometry_for_stage(self.start_stage)
         return ProjectionInput(
-            self.itemization.value,
-            "stable",
-            self.seeds,
-            tuple(
+            itemization=self.itemization.value,
+            ordering="stable",
+            seeds=self.seeds,
+            item_counts=tuple(
                 ItemCount(name, count)
                 for name, count in sorted(counts.items())
                 if count
             ),
-            (
-                UnlockCount("board-file-unlock", files),
-                UnlockCount("board-rank-unlock", ranks),
+            unlock_counts=(
+                UnlockCount("board-file-unlock", files - start_files),
+                UnlockCount("board-rank-unlock", ranks - start_ranks),
             ),
-            self.preferences,
+            upgrade_preferences=self.preferences,
+            geometry_baseline=GeometryBaseline(
+                baseline.files,
+                baseline.ranks,
+            ),
         )
 
     def _geometry(self, stage: BoardStage) -> GeometryStage:

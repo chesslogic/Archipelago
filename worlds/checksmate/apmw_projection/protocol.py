@@ -82,7 +82,10 @@ def handle_batch_request(request: Any) -> dict[str, Any]:
 
     contract = load_frozen_contract()
     if request["contract_hash"] != contract.manifest_sha256:
-        raise ProtocolError(CONTRACT_MISMATCH, "contract hash does not match frozen v2 contract")
+        raise ProtocolError(
+            CONTRACT_MISMATCH,
+            f"contract hash does not match frozen v{contract.version.major} contract",
+        )
 
     semantic_input = _validate_input(request["input"])
     geometries = _validate_geometries(request["geometries"], contract.stage_order)
@@ -206,7 +209,11 @@ def _validate_geometries(value: Any, stage_order: tuple[str, ...]) -> list[str]:
         raise ProtocolError(INVALID_REQUEST, "geometries must not contain duplicates")
     unknown = next((stage_id for stage_id in value if stage_id not in stage_order), None)
     if unknown is not None:
-        raise ProtocolError(UNKNOWN_GEOMETRY, "geometry is not defined by frozen v2 contract")
+        contract = load_frozen_contract()
+        raise ProtocolError(
+            UNKNOWN_GEOMETRY,
+            f"geometry is not defined by frozen v{contract.version.major} contract",
+        )
     return value
 
 

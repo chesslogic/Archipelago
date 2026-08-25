@@ -1,5 +1,6 @@
 from .cm_mock_test_case import CMMockTestCase
 from ..material_model import MaterialModel
+from ..options import MaxBoardSize, MinBoardSize
 from ..pool_state import PoolAccounting
 
 class TestMaterialModel(CMMockTestCase):
@@ -31,12 +32,24 @@ class TestMaterialModel(CMMockTestCase):
 
     def test_material_requirements_scaling(self):
         """Test that material requirements scale correctly with board size"""
+        self.world.options.max_board_size = MaxBoardSize.from_any("10x8")
         min_mat, max_mat = self.material_model.calculate_material_requirements()
-        self.world.options.goal.value = self.world.options.goal.option_progressive
+        self.world.options.max_board_size = MaxBoardSize.from_any("12x10")
         min_mat_super, max_mat_super = self.material_model.calculate_material_requirements()
         
         self.assertGreater(min_mat_super, min_mat)
         self.assertGreater(max_mat_super, max_mat)
+
+    def test_six_by_eight_terminal_uses_safe_standard_pool_target(self):
+        self.world.options.min_board_size = MinBoardSize.from_any("8x8")
+        self.world.options.max_board_size = MaxBoardSize.from_any("8x8")
+        standard = self.material_model.calculate_material_requirements()
+
+        self.world.options.min_board_size = MinBoardSize.from_any("6x8")
+        self.world.options.max_board_size = MaxBoardSize.from_any("6x8")
+        compact = self.material_model.calculate_material_requirements()
+
+        self.assertEqual(standard, compact)
 
     def test_unupgraded_majors_in_pool(self):
         """Test counting of unupgraded major pieces"""

@@ -20,7 +20,7 @@ class TestItemContract(unittest.TestCase):
             "Super-Size Me": (4_901_010, 0, 0),
             "Material": (4_901_011, 321, 400),
             "Castler": (4_901_012, 2, 0),
-            "Board Files": (4_901_013, 2, 0),
+            "Board Files": (4_901_013, 3, 0),
             "Board Ranks": (4_901_014, 2, 0),
             "Progressive Pocket": (4_901_020, 12, 110),
             "Progressive Pocket Gems": (4_901_023, sys.maxsize, 0),

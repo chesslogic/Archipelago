@@ -74,6 +74,7 @@ def create_release_manifest(
                 "runtime_semantic_version",
                 "protocol_version",
                 "contract_hash",
+                "minimum_client_version",
             )
         }
         if metadata is None:
@@ -163,6 +164,7 @@ def _read_build_manifest(path: Path) -> tuple[dict[str, Any], bytes]:
         "runtime_semantic_version",
         "protocol_version",
         "contract_hash",
+        "minimum_client_version",
         "target_platform",
         "target_architecture",
         "executable_relative_path",
@@ -186,6 +188,8 @@ def _read_build_manifest(path: Path) -> tuple[dict[str, Any], bytes]:
         or document["protocol_version"] < 1
         or not isinstance(document["contract_hash"], str)
         or not _SHA256.fullmatch(document["contract_hash"])
+        or not isinstance(document["minimum_client_version"], str)
+        or not _SEMANTIC_VERSION.fullmatch(document["minimum_client_version"])
         or not isinstance(document["target_platform"], str)
         or document["target_platform"] not in _PLATFORMS
         or not isinstance(document["target_architecture"], str)

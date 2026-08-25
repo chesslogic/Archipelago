@@ -1,4 +1,4 @@
-"""Strict parser for the shared, non-live APMW contract v2 manifest.
+"""Strict parser for shared, non-live APMW contract manifests.
 
 Canonical hashing decodes JSON while rejecting duplicate keys, replaces the
 root ``manifest_sha256`` value with ``""``, sorts every object by ordinal key,
@@ -18,8 +18,9 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 
-SUPPORTED_MAJOR = 2
+SUPPORTED_MAJOR = 3
 SUPPORTED_MINOR = 0
+SUPPORTED_VERSIONS = ((2, 0), (3, 0))
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
@@ -32,9 +33,44 @@ _MODE_COMBINATIONS = (
     ("legacy", "chaos", "chaos-legacy", True, True, False, False, True, True),
     ("fundamental", "stable", "stable-fundamental", True, True, False, False, True, True),
 )
-_FILE_LADDER = (8, 10, 12)
-_RANK_LADDER = (8, 10, 12)
-_STAGE_ORDER = ("8x8", "10x8", "10x10", "12x10", "12x12")
+_GEOMETRY_VERSIONS = {
+    (2, 0): {
+        "base": (8, 8),
+        "file_ladder": (8, 10, 12),
+        "rank_ladder": (8, 10, 12),
+        "stage_order": ("8x8", "10x8", "10x10", "12x10", "12x12"),
+        "location_totals": {
+            "8x8": (71, 65, 61),
+            "10x8": (86, 80, 76),
+            "10x10": (87, 81, 77),
+            "12x10": (102, 96, 92),
+            "12x12": (103, 97, 93),
+        },
+        "unlock_bases": (8, 8),
+    },
+    (3, 0): {
+        "base": (6, 8),
+        "file_ladder": (6, 8, 10, 12),
+        "rank_ladder": (8, 10, 12),
+        "stage_order": (
+            "6x8",
+            "8x8",
+            "10x8",
+            "10x10",
+            "12x10",
+            "12x12",
+        ),
+        "location_totals": {
+            "6x8": (57, 51, 47),
+            "8x8": (71, 65, 61),
+            "10x8": (86, 80, 76),
+            "10x10": (87, 81, 77),
+            "12x10": (102, 96, 92),
+            "12x12": (103, 97, 93),
+        },
+        "unlock_bases": (6, 8),
+    },
+}
 _ALGORITHMS = {
     "capacity": "expanded-formation-v2",
     "projection": "placement-role-material-v2",
@@ -296,6 +332,11 @@ class ApmwContractV2:
     effective_item_maxima: Mapping[str, Mapping[str, int]]
 
 
+@dataclass(frozen=True)
+class ApmwContractV3(ApmwContractV2):
+    """APMW v3 contract with the 6x8 geometry prologue."""
+
+
 def _reject_float(value: str) -> None:
     raise ApmwContractError(f"JSON numbers must be integers, not {value}")
 
@@ -418,9 +459,16 @@ def _int_tuple(value: Any, path: str) -> tuple[int, ...]:
     return tuple(_integer(item, f"{path}[{index}]", 1) for index, item in enumerate(_array(value, path)))
 
 
-def _require_exact(actual: Any, expected: Any, path: str) -> None:
+def _require_version_exact(
+    actual: Any,
+    expected: Any,
+    path: str,
+    version: ContractVersion,
+) -> None:
     if actual != expected:
-        raise ApmwContractError(f"{path} must equal the frozen v2.0 value")
+        raise ApmwContractError(
+            f"{path} must equal the frozen v{version.major}.{version.minor} value"
+        )
 
 
 def _parse_int_map(value: Any, path: str) -> dict[str, int]:
@@ -464,15 +512,25 @@ def parse_contract(text: str) -> ApmwContractV2:
 
     version_data = _object(root["version"], "$.version", {"major", "minor"})
     version = ContractVersion(
-        _integer(version_data["major"], "$.version.major"),
-        _integer(version_data["minor"], "$.version.minor"),
+        _integer(version_data["major"], "$.version.major", 0),
+        _integer(version_data["minor"], "$.version.minor", 0),
     )
-    if version.major != SUPPORTED_MAJOR:
+    if version.major not in {major for major, _ in SUPPORTED_VERSIONS}:
         raise ApmwContractError(f"unsupported contract major version {version.major}")
-    if version.minor > SUPPORTED_MINOR:
+    supported_minor = next(
+        minor
+        for major, minor in SUPPORTED_VERSIONS
+        if major == version.major
+    )
+    if version.minor > supported_minor:
         raise ApmwContractError(
-            f"unsupported contract minor version {version.minor}; parser supports through {SUPPORTED_MINOR}"
+            f"unsupported contract minor version {version.minor}; "
+            f"parser supports v{version.major} through {supported_minor}"
         )
+    geometry_version = _GEOMETRY_VERSIONS[(version.major, version.minor)]
+
+    def _require_exact(actual: Any, expected: Any, path: str) -> None:
+        _require_version_exact(actual, expected, path, version)
 
     manifest_hash = _string(root["manifest_sha256"], "$.manifest_sha256")
     if not _SHA256_RE.fullmatch(manifest_hash):
@@ -578,8 +636,21 @@ def parse_contract(text: str) -> ApmwContractV2:
             raise ApmwContractError(f"{path} must be a strictly increasing ladder of even values")
     if base.files != file_ladder[0] or base.ranks != rank_ladder[0]:
         raise ApmwContractError("$.geometry.base must use the first file and rank ladder values")
-    _require_exact(file_ladder, _FILE_LADDER, "$.geometry.file_ladder")
-    _require_exact(rank_ladder, _RANK_LADDER, "$.geometry.rank_ladder")
+    _require_exact(
+        (base.files, base.ranks),
+        geometry_version["base"],
+        "$.geometry.base",
+    )
+    _require_exact(
+        file_ladder,
+        geometry_version["file_ladder"],
+        "$.geometry.file_ladder",
+    )
+    _require_exact(
+        rank_ladder,
+        geometry_version["rank_ladder"],
+        "$.geometry.rank_ladder",
+    )
 
     stage_order = _string_tuple(geometry["stage_order"], "$.geometry.stage_order")
     stages = []
@@ -634,7 +705,13 @@ def parse_contract(text: str) -> ApmwContractV2:
             raise ApmwContractError("$.geometry.valid_pairs contains duplicate geometries")
         seen_pairs.add(pair)
         deployment_depth = parsed.ranks - 3
-        expected_locations = 7 * parsed.files + 15 + index
+        try:
+            expected_locations = geometry_version["location_totals"][parsed.stage_id]
+        except KeyError as error:
+            raise ApmwContractError(
+                f"{path}.stage_id must equal the frozen "
+                f"v{version.major}.{version.minor} value"
+            ) from error
         expected_values = (
             deployment_depth,
             parsed.files * deployment_depth - 1,
@@ -643,9 +720,7 @@ def parse_contract(text: str) -> ApmwContractV2:
             parsed.files * (parsed.ranks - 6) - 1,
             parsed.files,
             parsed.files - 1,
-            expected_locations,
-            expected_locations - 6,
-            expected_locations - 10,
+            *expected_locations,
         )
         actual_values = (
             parsed.deployment_depth,
@@ -665,7 +740,11 @@ def parse_contract(text: str) -> ApmwContractV2:
 
     if tuple(stage.stage_id for stage in stages) != stage_order:
         raise ApmwContractError("$.geometry.stage_order must exactly match valid_pairs order")
-    _require_exact(stage_order, _STAGE_ORDER, "$.geometry.stage_order")
+    _require_exact(
+        stage_order,
+        geometry_version["stage_order"],
+        "$.geometry.stage_order",
+    )
     if not stages or stages[0].stage_id != base.stage_id:
         raise ApmwContractError("$.geometry.valid_pairs must begin with the base geometry")
     for previous, current in zip(stages, stages[1:]):
@@ -703,8 +782,18 @@ def parse_contract(text: str) -> ApmwContractV2:
         geometry_unlocks,
         GeometryUnlocks(
             (
-                GeometryUnlockRole("board-file-unlock", 8, 2, 12),
-                GeometryUnlockRole("board-rank-unlock", 8, 2, 12),
+                GeometryUnlockRole(
+                    "board-file-unlock",
+                    geometry_version["unlock_bases"][0],
+                    2,
+                    12,
+                ),
+                GeometryUnlockRole(
+                    "board-rank-unlock",
+                    geometry_version["unlock_bases"][1],
+                    2,
+                    12,
+                ),
             ),
             "largest-componentwise-unlocked-valid-pair",
         ),
@@ -1042,7 +1131,12 @@ def parse_contract(text: str) -> ApmwContractV2:
     frozen_maxima = MappingProxyType(
         {key: MappingProxyType(dict(value)) for key, value in maxima.items()}
     )
-    return ApmwContractV2(
+    contract_type = (
+        ApmwContractV3
+        if version.major == 3
+        else ApmwContractV2
+    )
+    return contract_type(
         version,
         manifest_hash,
         minimum_client_version,

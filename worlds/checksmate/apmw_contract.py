@@ -3,8 +3,10 @@
 from .apmw_projection.contract import (
     SUPPORTED_MAJOR,
     SUPPORTED_MINOR,
+    SUPPORTED_VERSIONS,
     ApmwContractError,
     ApmwContractV2,
+    ApmwContractV3,
     CastlerSemantics,
     ContractVersion,
     CpuProfiles,
@@ -26,8 +28,10 @@ from .apmw_projection.contract import (
 __all__ = (
     "SUPPORTED_MAJOR",
     "SUPPORTED_MINOR",
+    "SUPPORTED_VERSIONS",
     "ApmwContractError",
     "ApmwContractV2",
+    "ApmwContractV3",
     "CastlerSemantics",
     "ContractVersion",
     "CpuProfiles",

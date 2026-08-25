@@ -21,11 +21,17 @@ from .contract_resource import (
     production_contract_document,
 )
 from .locations import (
-    BoardStage,
     CMLocation,
     location_names_for_stage,
     location_table,
     tactics_mode_for_options,
+)
+from .geometry_progression import (
+    BoardStage,
+    GeometryProgression,
+    GeometryUnlocks,
+    build_geometry_progression,
+    build_legacy_ordered_progression,
 )
 from .presets import checksmate_option_presets
 from .rules import set_rules
@@ -45,6 +51,13 @@ _SEMANTIC_SEED_NAMES = (
     "major_seed",
     "queen_seed",
 )
+
+_LEGACY_GOAL_GEOMETRY = {
+    0: (BoardStage.Board8x8, BoardStage.Board8x8, "fixed"),
+    1: (BoardStage.Board8x8, BoardStage.Board12x12, "fixed"),
+    2: (BoardStage.Board8x8, BoardStage.Board12x12, "distributed"),
+    3: (BoardStage.Board10x8, BoardStage.Board12x12, "distributed"),
+}
 
 
 class CMWeb(WebWorld):
@@ -68,7 +81,9 @@ class CMWorld(World):
     """
     game: ClassVar[str] = "ChecksMate"
     web = CMWeb()
-    required_chess_client_version = "0.4.0"
+    required_chess_client_version = (
+        load_production_contract().minimum_client_version
+    )
     options_dataclass: ClassVar[Type[PerGameCommonOptions]] = CMOptions
     options: CMOptions
 
@@ -106,8 +121,10 @@ class CMWorld(World):
         self._semantic_seed_values: dict[str, int] | None = None
         self._pocket_order: tuple[int, ...] | None = None
         self._early_material_item_name: str | None = None
+        self._geometry_progression: GeometryProgression | None = None
 
     def generate_early(self) -> None:
+        self._normalize_geometry_options()
         self._ensure_semantic_seeds()
         if (
             self.options.fairy_chess_pawns.value
@@ -157,6 +174,7 @@ class CMWorld(World):
 
     def fill_slot_data(self) -> dict:
         contract = load_production_contract()
+        progression = self.geometry_progression
         self._ensure_semantic_seeds()
         cursed_knowledge = dict(self._semantic_seed_values)
         cursed_knowledge["pocket_order"] = self._stable_pocket_order()
@@ -171,14 +189,21 @@ class CMWorld(World):
             cursed_knowledge["logic_obtainable_counts"] = dict(
                 logic_obtainable_counts
             )
-        cursed_knowledge["required_chess_client_version"] = self.required_chess_client_version
+        cursed_knowledge["required_chess_client_version"] = (
+            contract.minimum_client_version
+        )
         cursed_knowledge["apmw_contract"] = production_contract_document()
+        cursed_knowledge["apmw_contract_version"] = {
+            "major": contract.version.major,
+            "minor": contract.version.minor,
+        }
         cursed_knowledge["material_item_value"] = contract.expected_material["material_item"]
         cursed_knowledge["castling_location_count"] = contract.castler.maximum
         cursed_knowledge["geometry_unlock_items"] = dict(UNLOCK_ITEM_ROLES)
+        cursed_knowledge.update(self._geometry_slot_fields(progression))
         if self.army_ids:
             cursed_knowledge["army"] = list(self.army_ids)
-        option_names = ["goal", "death_link", "difficulty", "enable_tactics", "piece_locations", "piece_types",
+        option_names = ["min_board_size", "max_board_size", "death_link", "difficulty", "enable_tactics", "piece_locations", "piece_types",
                         "fairy_chess_army", "fairy_chess_pieces", "fairy_chess_pieces_configure", "fairy_chess_pawns", "fairy_chess_pawn_upgrades",
                         "max_pocket", "piece_upgrade_priority",
                         "minor_piece_limit_by_type", "major_piece_limit_by_type", "queen_piece_limit_by_type",
@@ -207,7 +232,31 @@ class CMWorld(World):
     @staticmethod
     def interpret_slot_data(slot_data: dict) -> dict:
         """Preserve generated values required for Universal Tracker rules."""
-        return slot_data
+        if "goal" not in slot_data:
+            return slot_data
+        goal = slot_data["goal"]
+        if (
+            not isinstance(goal, int)
+            or isinstance(goal, bool)
+            or goal not in _LEGACY_GOAL_GEOMETRY
+        ):
+            raise OptionError(
+                "ChecksMate legacy goal must be an integer from 0 through 3."
+            )
+
+        start, end, distribution = _LEGACY_GOAL_GEOMETRY[goal]
+        progression = (
+            build_geometry_progression(start, end)
+            if end != BoardStage.Board12x12
+            else build_legacy_ordered_progression(start)
+        )
+        interpreted = dict(slot_data)
+        interpreted.setdefault("min_board_size", start.value)
+        interpreted.setdefault("max_board_size", end.value)
+        interpreted.setdefault("geometry_unlock_distribution", distribution)
+        for field, value in CMWorld._geometry_slot_fields(progression).items():
+            interpreted.setdefault(field, value)
+        return interpreted
 
     def create_item(self, name: str) -> CMItem:
         data = item_table[name]
@@ -231,11 +280,15 @@ class CMWorld(World):
 
     def create_regions(self) -> None:
         region = Region("Menu", self.player, self.multiworld)
-        super_sized = self.options.goal.value != self.options.goal.option_single
-        stage = BoardStage.Board12x12 if super_sized else BoardStage.Board8x8
+        progression = self.geometry_progression
+        stage = progression.endpoint.stage
         tactics_mode = tactics_mode_for_options(self.options)
 
-        for loc_name in location_names_for_stage(stage, tactics_mode):
+        for loc_name in location_names_for_stage(
+            stage,
+            tactics_mode,
+            progression_start=progression.stages[0].stage,
+        ):
             loc_data = location_table[loc_name]
             region.locations.append(CMLocation(self.player, loc_name, loc_data.code, region))
 
@@ -282,7 +335,11 @@ class CMWorld(World):
                 name: str(value)
                 for name, value in self._semantic_seed_values.items()
             })
-            self._logic_projection = WorldLogicProjection(self.options, seeds)
+            self._logic_projection = WorldLogicProjection(
+                self.options,
+                seeds,
+                start_stage=self.geometry_progression.stages[0].stage,
+            )
             self._apply_tracker_projection_overrides(self._logic_projection)
         return self._logic_projection
 
@@ -434,11 +491,7 @@ class CMWorld(World):
         return list(self._pocket_order)
 
     def _place_victory(self) -> None:
-        location_name = (
-            "Checkmate Minima"
-            if self.options.goal.value == self.options.goal.option_single
-            else "Checkmate 12x12"
-        )
+        location_name = self.geometry_progression.victory.location_name
         location = self.multiworld.get_location(location_name, self.player)
         if location.item is None:
             location.place_locked_item(self.create_item("Victory"))
@@ -446,3 +499,132 @@ class CMWorld(World):
             raise RuntimeError(
                 f"{location_name} is already occupied before Victory placement"
             )
+
+    @property
+    def geometry_progression(self) -> GeometryProgression:
+        if self._geometry_progression is None:
+            self._geometry_progression = self._build_geometry_progression(
+                self.options.min_board_size.value,
+                self.options.max_board_size.value,
+            )
+        return self._geometry_progression
+
+    def _normalize_geometry_options(self) -> None:
+        start = self.options.min_board_size.value
+        end = self.options.max_board_size.value
+        slot_data = self._tracker_slot_data()
+        legacy_ordered = False
+        if slot_data is not None:
+            slot_data = self.interpret_slot_data(slot_data)
+            if "goal" in slot_data:
+                goal = slot_data["goal"]
+                legacy_start, legacy_end, distribution = (
+                    _LEGACY_GOAL_GEOMETRY[goal]
+                )
+                if (
+                    slot_data["geometry_unlock_distribution"]
+                    != distribution
+                ):
+                    raise OptionError(
+                        "ChecksMate tracker slot data geometry distribution "
+                        "does not match its legacy goal semantics."
+                    )
+                if distribution == "distributed":
+                    raise OptionError(
+                        f"ChecksMate legacy Goal {goal} uses distributed "
+                        "board unlocks and cannot be faithfully reconstructed "
+                        "by the fixed-event board-series generator."
+                    )
+                start = legacy_start.value
+                end = legacy_end.value
+                legacy_ordered = goal == 1
+            has_start = "min_board_size" in slot_data
+            has_end = "max_board_size" in slot_data
+            if has_start != has_end:
+                raise OptionError(
+                    "ChecksMate tracker slot data must include both "
+                    "min_board_size and max_board_size."
+                )
+            if has_start:
+                if "goal" in slot_data and (
+                    slot_data["min_board_size"] != start
+                    or slot_data["max_board_size"] != end
+                ):
+                    raise OptionError(
+                        "ChecksMate tracker slot data board bounds do not "
+                        "match its legacy goal semantics."
+                    )
+                start = slot_data["min_board_size"]
+                end = slot_data["max_board_size"]
+
+        progression = self._build_geometry_progression(
+            start,
+            end,
+            legacy_ordered=legacy_ordered,
+        )
+        self.options.min_board_size.value = int(start)
+        self.options.max_board_size.value = int(end)
+        self._geometry_progression = progression
+        if slot_data is not None:
+            self._validate_tracker_geometry(slot_data, progression)
+
+    @staticmethod
+    def _build_geometry_progression(
+        start,
+        end,
+        *,
+        legacy_ordered: bool = False,
+    ) -> GeometryProgression:
+        try:
+            progression = (
+                build_legacy_ordered_progression(start)
+                if legacy_ordered
+                else build_geometry_progression(start, end)
+            )
+        except ValueError as error:
+            raise OptionError(f"ChecksMate board series is invalid: {error}") from error
+        return progression
+
+    def _validate_tracker_geometry(
+        self,
+        slot_data: dict,
+        progression: GeometryProgression,
+    ) -> None:
+        for field, expected_value in self._geometry_slot_fields(
+            progression
+        ).items():
+            if field in slot_data and slot_data[field] != expected_value:
+                raise OptionError(
+                    f"ChecksMate tracker slot data {field} "
+                    f"{slot_data[field]!r} does not match normalized board "
+                    f"series value {expected_value!r}."
+                )
+
+    @staticmethod
+    def _geometry_slot_fields(
+        progression: GeometryProgression,
+    ) -> dict:
+        return {
+            "geometry_start": progression.stages[0].stage_id,
+            "geometry_end": progression.endpoint.stage_id,
+            "geometry_baseline": {
+                "files": progression.stages[0].files,
+                "ranks": progression.stages[0].ranks,
+            },
+            "geometry_start_unlocks": CMWorld._unlock_role_counts(
+                progression.initial_unlocks
+            ),
+            "geometry_generated_unlocks": CMWorld._unlock_role_counts(
+                progression.generated_unlocks
+            ),
+            "geometry_end_unlocks": CMWorld._unlock_role_counts(
+                progression.endpoint.unlocks
+            ),
+        }
+
+    @staticmethod
+    def _unlock_role_counts(unlocks: GeometryUnlocks) -> dict[str, int]:
+        return {
+            UNLOCK_ITEM_ROLES["Board Files"]: unlocks.board_files,
+            UNLOCK_ITEM_ROLES["Board Ranks"]: unlocks.board_ranks,
+        }

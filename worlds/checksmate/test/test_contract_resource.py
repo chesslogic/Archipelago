@@ -52,9 +52,9 @@ class TestContractResource(unittest.TestCase):
         self.assertIsNot(first, second)
         self.assertIsNot(first["geometry"], second["geometry"])
         first["geometry"]["base"]["files"] = 99
-        self.assertEqual(8, second["geometry"]["base"]["files"])
+        self.assertEqual(6, second["geometry"]["base"]["files"])
         self.assertEqual(
-            8,
+            6,
             resource.frozen_contract_document()["geometry"]["base"]["files"],
         )
 

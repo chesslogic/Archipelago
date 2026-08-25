@@ -42,24 +42,24 @@ class VictoryLifecycleMixin:
 
 
 class TestSingleVictoryLifecycle(VictoryLifecycleMixin, CMTestBase):
-    options = {"goal": "single"}
-    victory_location = "Checkmate Minima"
+    options = {"max_board_size": "10x8"}
+    victory_location = "Checkmate Maxima"
 
     def world_setup(self, *args, **kwargs) -> None:
         super().world_setup(seed=0)
 
 
 class TestProgressiveVictoryLifecycle(VictoryLifecycleMixin, CMTestBase):
-    options = {"goal": "progressive"}
-    victory_location = "Checkmate 12x12"
+    options = {"max_board_size": "12x10"}
+    victory_location = "Checkmate 12x10"
 
     def world_setup(self, *args, **kwargs) -> None:
         super().world_setup(seed=0)
 
 
 class TestOrderedVictoryLifecycle(VictoryLifecycleMixin, CMTestBase):
-    options = {"goal": "ordered_progressive"}
-    victory_location = "Checkmate 12x12"
+    options = {"min_board_size": "6x8", "max_board_size": "10x10"}
+    victory_location = "Checkmate 10x10"
 
     def world_setup(self, *args, **kwargs) -> None:
         super().world_setup(seed=0)

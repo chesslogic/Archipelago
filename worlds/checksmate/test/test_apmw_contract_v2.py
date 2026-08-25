@@ -5,6 +5,7 @@ import unittest
 
 if __package__:
     from ..apmw_projection.contract import (
+        ApmwContractV2,
         ApmwContractError,
         compute_manifest_sha256,
         parse_contract,
@@ -13,6 +14,7 @@ else:
     CHECKSMATE_ROOT = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(CHECKSMATE_ROOT))
     from apmw_projection.contract import (
+        ApmwContractV2,
         ApmwContractError,
         compute_manifest_sha256,
         parse_contract,
@@ -38,6 +40,7 @@ class TestApmwContractV2(unittest.TestCase):
     def test_accepts_baseline_and_verifies_frozen_hash(self):
         contract = parse_contract(self.text)
 
+        self.assertIsInstance(contract, ApmwContractV2)
         self.assertEqual((2, 0), (contract.version.major, contract.version.minor))
         self.assertEqual(EXPECTED_HASH, contract.manifest_sha256)
         self.assertEqual(EXPECTED_HASH, compute_manifest_sha256(self.text))
@@ -179,8 +182,8 @@ class TestApmwContractV2(unittest.TestCase):
             )
 
     def test_rejects_unknown_major_and_newer_minor_explicitly(self):
-        self.document["version"]["major"] = 3
-        with self.assertRaisesRegex(ApmwContractError, "unsupported contract major version 3"):
+        self.document["version"]["major"] = 4
+        with self.assertRaisesRegex(ApmwContractError, "unsupported contract major version 4"):
             parse_contract(json.dumps(self.document))
 
         self.document["version"]["major"] = 2

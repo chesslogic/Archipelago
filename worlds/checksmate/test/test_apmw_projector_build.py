@@ -31,7 +31,8 @@ TEST_OUTPUT = REPOSITORY_ROOT / "build" / "test-apmw-projector-manifest"
 EXPECTED_PROJECTOR_METADATA = {
     "runtime_semantic_version": "0.1.0",
     "protocol_version": 1,
-    "contract_hash": "f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15",
+    "contract_hash": "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
+    "minimum_client_version": "0.5.0",
 }
 
 
@@ -73,6 +74,7 @@ class TestApmwProjectorBuild(unittest.TestCase):
                 "runtime_semantic_version",
                 "protocol_version",
                 "contract_hash",
+                "minimum_client_version",
                 "target_platform",
                 "target_architecture",
                 "executable_relative_path",
@@ -119,7 +121,7 @@ class TestApmwProjectorBuild(unittest.TestCase):
             / "checksmate"
             / "apmw_projection"
             / "data"
-            / "apmw_contract_v2.json",
+            / "apmw_contract_v3.json",
             self.builder.CONTRACT_DATA,
         )
         self.assertTrue(self.builder.CONTRACT_DATA.is_file())

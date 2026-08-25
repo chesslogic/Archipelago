@@ -19,7 +19,7 @@ CHECKSMATE_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = CHECKSMATE_ROOT.parents[1]
 ENTRY_SCRIPT = Path(__file__).resolve().with_name("apmw_projector.py")
 CONTRACT_DATA = (
-    CHECKSMATE_ROOT / "apmw_projection" / "data" / "apmw_contract_v2.json"
+    CHECKSMATE_ROOT / "apmw_projection" / "data" / "apmw_contract_v3.json"
 )
 MANIFEST_NAME = "apmw-projector-manifest.json"
 CX_FREEZE_VERSION = "8.0.0"
@@ -81,6 +81,7 @@ def projector_metadata() -> dict[str, Any]:
     _ensure_checksmate_import_path()
     from apmw_projection import (
         FROZEN_CONTRACT_HASH,
+        MINIMUM_CLIENT_VERSION,
         PROTOCOL_VERSION,
         RUNTIME_SEMANTIC_VERSION,
     )
@@ -89,6 +90,7 @@ def projector_metadata() -> dict[str, Any]:
         "runtime_semantic_version": RUNTIME_SEMANTIC_VERSION,
         "protocol_version": PROTOCOL_VERSION,
         "contract_hash": FROZEN_CONTRACT_HASH,
+        "minimum_client_version": MINIMUM_CLIENT_VERSION,
     }
 
 
@@ -141,7 +143,7 @@ def build_projector(output_dir: Path) -> Path:
                 "include_files": [
                     (
                         str(CONTRACT_DATA),
-                        "data/apmw_contract_v2.json",
+                        "data/apmw_contract_v3.json",
                     )
                 ],
             }

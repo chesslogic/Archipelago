@@ -4,10 +4,8 @@ from BaseClasses import ItemClassification, PlandoOptions
 from Fill import distribute_items_restrictive
 from Options import OptionError, StartInventory, StartInventoryPool
 from test.general import setup_multiworld
-
 from .bases import CMTestBase
 from .. import CMWorld
-from ..item_pool import CMItemPool
 from ..options import (
     CMOptions,
     FairyChessPawns,
@@ -17,7 +15,7 @@ from ..options import (
 
 
 def make_partial_world(options=None, seed=0):
-    option_values = {"goal": "single"}
+    option_values = {}
     option_values.update(options or {})
     multiworld = setup_multiworld(
         CMWorld,
@@ -227,7 +225,7 @@ class TestGenerationInventoryAndEarlyMaterial(CMTestBase):
     def test_fundamental_pockets_reduce_minimum_chessmen_plan(self):
         world = make_partial_world(
             {
-                "goal": "single",
+                "max_board_size": "10x8",
                 "enable_tactics": "none",
                 "progression_itemization": "fundamental",
                 "accessibility": "full",
@@ -239,7 +237,7 @@ class TestGenerationInventoryAndEarlyMaterial(CMTestBase):
             seed=3,
         )
         items = world._item_pool.create_items()
-        self.assertEqual(60, len(items))
+        self.assertEqual(74, len(items))
 
     def test_start_inventory_queen_upgrades_also_reserve_castlers(self):
         starting_queens = 9
@@ -329,10 +327,10 @@ class TestGenerationInventoryAndEarlyMaterial(CMTestBase):
             }
         )
         starter = jack_world._item_pool.assign_starter_items({}, [])
-        self.assertEqual(["Progressive Jack"], [item.name for item in starter])
+        self.assertEqual("Progressive Jack", starter[-1].name)
         self.assertEqual(
             ItemClassification.progression,
-            starter[0].classification,
+            starter[-1].classification,
         )
 
     def test_fundamental_early_material_candidate_mapping(self):
@@ -388,7 +386,7 @@ class TestGenerationLockedItems(CMTestBase):
                         {"locked_items": {item_name: 1}}
                     )
 
-    def test_locked_mode_and_goal_incompatibilities_are_errors(self):
+    def test_locked_mode_and_geometry_incompatibilities_are_errors(self):
         cases = (
             (
                 {
@@ -406,10 +404,9 @@ class TestGenerationLockedItems(CMTestBase):
             ),
             (
                 {
-                    "goal": "single",
                     "locked_items": {"Board Files": 1},
                 },
-                "Board Files.*unavailable for goal 'single'",
+                "Board Files.*fixed board-series event",
             ),
             (
                 {
@@ -461,14 +458,14 @@ class TestGenerationLockedItems(CMTestBase):
     def test_locked_aggregate_capacity_is_validated(self):
         with self.assertRaisesRegex(
             OptionError,
-            "require at least 61 generated pool slots.*only 60",
+            "require at least 90 generated pool slots.*only 88",
         ):
             make_partial_world(
                 {
                     "accessibility": "minimal",
                     "enable_tactics": "none",
                     "locked_items": {
-                        "Progressive Pocket Gems": 60
+                        "Progressive Pocket Gems": 89
                     },
                 }
             )
@@ -557,23 +554,30 @@ class _CompleteGenerationMixin:
 
 
 class TestGenerationLegacySingle(_CompleteGenerationMixin, CMTestBase):
-    options = {"goal": "single", "progression_itemization": "legacy"}
+    options = {
+        "max_board_size": "10x8",
+        "progression_itemization": "legacy",
+    }
 
 
 class TestGenerationLegacyProgressive(_CompleteGenerationMixin, CMTestBase):
     options = {
-        "goal": "progressive",
+        "max_board_size": "12x10",
         "progression_itemization": "legacy",
     }
 
 
 class TestGenerationLegacySuper(_CompleteGenerationMixin, CMTestBase):
-    options = {"goal": "super", "progression_itemization": "legacy"}
+    options = {
+        "min_board_size": "6x8",
+        "max_board_size": "12x10",
+        "progression_itemization": "legacy",
+    }
 
 
 class TestGenerationFundamentalSingle(_CompleteGenerationMixin, CMTestBase):
     options = {
-        "goal": "single",
+        "max_board_size": "10x8",
         "progression_itemization": "fundamental",
     }
 
@@ -583,13 +587,14 @@ class TestGenerationFundamentalProgressive(
     CMTestBase,
 ):
     options = {
-        "goal": "progressive",
+        "max_board_size": "12x10",
         "progression_itemization": "fundamental",
     }
 
 
 class TestGenerationFundamentalSuper(_CompleteGenerationMixin, CMTestBase):
     options = {
-        "goal": "super",
+        "min_board_size": "6x8",
+        "max_board_size": "12x10",
         "progression_itemization": "fundamental",
     }

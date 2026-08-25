@@ -6,8 +6,9 @@
 
 - Any ChecksMate client. Currently, a modified ChessV client is supported and can be accessed via
   its [GitHub releases page](https://github.com/chesslogic/chessv/releases/latest) (latest version). The generated
-  game reports its minimum required client version (currently 0.4.0) to whichever client connects, so always use the
-  newest client release available.
+  game reports its minimum required client version to whichever client connects. Contract v3 worlds require client
+  0.5.0 or newer; client 0.4.0 supports contract v2 only and will reject a v3 world at the version gate. Always use
+  the newest client release available.
 - Archipelago from the [Archipelago Releases Page](https://github.com/ArchipelagoMW/Archipelago/releases/latest)
 
 Standalone APMW projector releases are built by a manual workflow owned by the
@@ -36,6 +37,14 @@ A normal (FIDE) army has 8 points of pawns plus 31 points of pieces (12 from 4 m
 1 queen). Material isn't everything: An army of 27 pawns plus 4 Knights is considered to be extremely powerful.
 Conversely, having no pawns whatsoever opens your position dramatically, allowing your pieces to make very aggressive
 moves and to maintain a very high tempo.
+
+#### Board series
+
+`min_board_size` can be `6x8`, `8x8` (the default), or `10x8`. `max_board_size` can be `6x8`, `8x8`, `10x8`,
+`10x10`, or `12x10` (the default), but cannot be smaller than the minimum. These bounds select an inclusive slice of
+the ordered board series. Checkmates grant fixed transition events in your own world until you win on the selected
+endpoint; equal bounds create a single-board world with no geometry transition. Board upgrades are not shuffled. The
+client still understands legacy 12x12 data, but 12x12 is not currently selectable.
 
 ### Generating a ChecksMate game
 

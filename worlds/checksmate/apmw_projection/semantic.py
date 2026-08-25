@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .contract import ApmwContractV2, GeometryStage
+from .contract import ApmwContractV2, ApmwContractV3, GeometryStage
 from .fundamental import (
     characterize_fundamental_owned_plan,
     expected_normalized_grant as expected_fundamental_grant,
@@ -32,6 +32,7 @@ from .models import (
     EffectiveCounts,
     FormationRankUsage,
     FundamentalOwnedPlan,
+    GeometryBaseline,
     ItemCount,
     MaterialLedgerEntry,
     OwnedSlot,
@@ -55,11 +56,13 @@ __all__ = (
     "ADDITIONAL_ROYAL",
     "AMAZON",
     "ApmwContractV2",
+    "ApmwContractV3",
     "CountByRoleFamily",
     "CounterBasedSeedSeries",
     "EffectiveCounts",
     "FormationRankUsage",
     "FundamentalOwnedPlan",
+    "GeometryBaseline",
     "GeometryStage",
     "ItemCount",
     "JACK",
@@ -164,7 +167,11 @@ def _prepare_projection(
 ]:
     _validate_mode(contract, projection_input)
     effective = _normalize_counts(contract, projection_input)
-    stage = _select_geometry(contract, effective.unlocks)
+    stage = _select_geometry(
+        contract,
+        effective.unlocks,
+        projection_input.geometry_baseline,
+    )
     actions = resolve_actions(contract, projection_input)
     semantic_root = projection_input.seeds.stable_root
 
@@ -244,8 +251,15 @@ def _normalize_counts(
 
     unlocks: list[UnlockCount] = []
     unlock_overcounts: list[UnlockCount] = []
+    baseline = _geometry_baseline(contract, projection_input.geometry_baseline)
+    baseline_by_role = {
+        "board-file-unlock": baseline.files,
+        "board-rank-unlock": baseline.ranks,
+    }
     for role_id, role in sorted(unlock_roles.items()):
-        maximum_steps = (role.maximum - role.base) // role.increment
+        maximum_steps = (
+            role.maximum - baseline_by_role[role_id]
+        ) // role.increment
         count = min(raw_unlocks.get(role_id, 0), maximum_steps)
         unlocks.append(UnlockCount(role_id, count))
         if raw_unlocks.get(role_id, 0) > count:
@@ -262,7 +276,9 @@ def _normalize_counts(
 
 
 def _select_geometry(
-    contract: ApmwContractV2, unlocks: tuple[UnlockCount, ...]
+    contract: ApmwContractV2,
+    unlocks: tuple[UnlockCount, ...],
+    geometry_baseline: GeometryBaseline | None = None,
 ) -> GeometryStage:
     counts = {entry.role_id: entry.count for entry in unlocks}
     role_by_id = {
@@ -270,14 +286,15 @@ def _select_geometry(
     }
     file_role = role_by_id["board-file-unlock"]
     rank_role = role_by_id["board-rank-unlock"]
+    baseline = _geometry_baseline(contract, geometry_baseline)
     unlocked_files = min(
         file_role.maximum,
-        file_role.base
+        baseline.files
         + file_role.increment * counts.get(file_role.role_id, 0),
     )
     unlocked_ranks = min(
         rank_role.maximum,
-        rank_role.base
+        baseline.ranks
         + rank_role.increment * counts.get(rank_role.role_id, 0),
     )
     candidates = [
@@ -295,3 +312,22 @@ def _select_geometry(
         for index, stage_id in enumerate(contract.stage_order)
     }
     return max(candidates, key=lambda stage: order[stage.stage_id])
+
+
+def _geometry_baseline(
+    contract: ApmwContractV2,
+    geometry_baseline: GeometryBaseline | None,
+) -> GeometryBaseline:
+    baseline = geometry_baseline or GeometryBaseline(
+        contract.base_geometry.files,
+        contract.base_geometry.ranks,
+    )
+    if not any(
+        (stage.files, stage.ranks) == (baseline.files, baseline.ranks)
+        for stage in contract.stages
+    ):
+        raise ProjectionError(
+            f"geometry baseline {baseline.files}x{baseline.ranks} "
+            "is not a valid contract stage"
+        )
+    return baseline

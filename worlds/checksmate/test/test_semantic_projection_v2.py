@@ -1,7 +1,7 @@
 r"""Projection compatibility snapshot provenance.
 
 Source: ``..\chessv\APMW.Test\Fixtures\ProjectionV2``.
-The production contract is canonical at
+The v2 compatibility contract remains at
 ``worlds\checksmate\apmw_projection\data\apmw_contract_v2.json``; the baseline
 fixture remains an independently hashed cross-language compatibility snapshot.
 Regenerate from this repository root with:

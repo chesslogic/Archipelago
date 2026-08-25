@@ -6,8 +6,13 @@ from ..items import (
     material_items,
     item_name_groups,
 )
-from ..locations import BoardStage, location_table
-from ..rules import determine_difficulty, effective_rule_stage, has_board_stage
+from ..locations import (
+    BoardStage,
+    location_table,
+    rule_stage_for_series,
+    uses_expanded_profile,
+)
+from ..rules import determine_difficulty, has_board_stage
 import logging
 
 
@@ -18,6 +23,9 @@ class TestLocationLogic(CMTestBase):
         self.difficulty = determine_difficulty(self.world.options)
         # Initialize locked_items to empty dict
         self.world.locked_items = {}
+        self.progression = self.world.geometry_progression
+        self.start_stage = self.progression.stages[0].stage
+        self.endpoint_stage = self.progression.endpoint.stage
         
     def create_test_item(self, name: str) -> Item:
         """Helper to create a test item with the given name"""
@@ -68,11 +76,16 @@ class TestLocationLogic(CMTestBase):
             "Fork, True Triple", "Fork, Sacrificial Royal", "Fork, True Royal",
             # Threat locations require pin mechanics
             "Threaten Minor", "Threaten Major", "Threaten Queen", "Threaten King",
-            # Capture Everything adjusts its material requirements based on the goal
+            # Capture Everything adjusts its profile for larger endpoints.
             "Capture Everything"
         }
         
         for loc_name, loc_data in location_table.items():
+            if loc_name not in {
+                location.name
+                for location in self.multiworld.get_locations(self.player)
+            }:
+                continue
             # Skip special rule locations
             if loc_name in special_rule_locations:
                 continue
@@ -83,23 +96,16 @@ class TestLocationLogic(CMTestBase):
                 continue
                 
             # Calculate scaled material requirement
-            rule_stage = effective_rule_stage(
+            rule_stage = rule_stage_for_series(
                 loc_name,
-                loc_data.required_stage,
-                self.world.options.goal.value
-                != self.world.options.goal.option_single,
+                self.start_stage,
+                self.endpoint_stage,
             )
-            expanded = (
-                self.world.options.goal.value
-                != self.world.options.goal.option_single
+            expanded = uses_expanded_profile(
+                loc_data,
+                self.endpoint_stage,
             )
-            material_requirement = loc_data.material_requirement(
-                expanded,
-                force_grand=(
-                    self.world.options.goal.value
-                    == self.world.options.goal.option_super
-                ),
-            )
+            material_requirement = loc_data.material_requirement(expanded)
             scaled_requirement = (
                 None
                 if material_requirement is None
@@ -119,6 +125,7 @@ class TestLocationLogic(CMTestBase):
                     self.collection_state,
                     self.player,
                     rule_stage,
+                    self.progression.initial_unlocks,
                 )
             )
             
@@ -141,18 +148,17 @@ class TestLocationLogic(CMTestBase):
         logging.debug(f"Initial state - Material: {self.collection_state.prog_items[self.player].get('Material', 0)}, Difficulty: {self.difficulty}")
         
         for loc_name, loc_data in location_table.items():
-            material_requirement = loc_data.material_requirement(
-                self.world.options.goal.value
-                != self.world.options.goal.option_single,
-                force_grand=(
-                    self.world.options.goal.value
-                    == self.world.options.goal.option_super
-                ),
+            if loc_name not in {
+                location.name
+                for location in self.multiworld.get_locations(self.player)
+            }:
+                continue
+            expanded = uses_expanded_profile(
+                loc_data,
+                self.endpoint_stage,
             )
-            chessmen_requirement = loc_data.chessmen_requirement(
-                self.world.options.goal.value
-                != self.world.options.goal.option_single
-            )
+            material_requirement = loc_data.material_requirement(expanded)
+            chessmen_requirement = loc_data.chessmen_requirement(expanded)
             if (
                 (material_requirement is not None and material_requirement > 0)
                 or chessmen_requirement > 0
@@ -196,12 +202,7 @@ class TestLocationLogic(CMTestBase):
             for loc in location_table.values()
             if (
                 requirement := loc.material_requirement(
-                    self.world.options.goal.value
-                    != self.world.options.goal.option_single,
-                    force_grand=(
-                        self.world.options.goal.value
-                        == self.world.options.goal.option_super
-                    ),
+                    uses_expanded_profile(loc, self.endpoint_stage),
                 )
             ) is not None
             and requirement > 0
@@ -251,7 +252,10 @@ class TestLocationLogic(CMTestBase):
         grand_material = location_table["Capture Everything"].material_expectations_grand
         
         # In current-schema super-sized mode, it requires the 12x10 stage and grand material.
-        if self.world.options.goal.value != self.world.options.goal.option_single:
+        if uses_expanded_profile(
+            location_table["Capture Everything"],
+            self.endpoint_stage,
+        ):
             # Should still be unreachable without Board Files
             self.assertFalse("Capture Everything" in self.get_accessible_locations(),
                 "Capture Everything should be unreachable without Super-Size Me in super-sized mode")
@@ -305,21 +309,34 @@ class TestLocationLogic(CMTestBase):
                 "Capture Everything should be accessible with enough material in single mode") 
 
     def test_geometry_stage_unlock_requirements(self):
-        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board8x8))
-        for stage in list(BoardStage)[1:]:
-            self.assertFalse(has_board_stage(self.collection_state, self.player, stage))
+        initial = self.progression.initial_unlocks
+        self.assertTrue(has_board_stage(
+            self.collection_state, self.player, BoardStage.Board6x8, initial
+        ))
+        self.assertTrue(has_board_stage(
+            self.collection_state, self.player, BoardStage.Board8x8, initial
+        ))
+        for stage in list(BoardStage)[2:]:
+            self.assertFalse(
+                has_board_stage(
+                    self.collection_state,
+                    self.player,
+                    stage,
+                    initial,
+                )
+            )
 
         self.world.collect(self.collection_state, self.create_test_item("Super-Size Me"))
-        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board10x8))
-        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board10x10))
+        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board10x8, initial))
+        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board10x10, initial))
 
         self.world.collect(self.collection_state, self.create_test_item("Board Ranks"))
-        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board10x10))
-        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board12x10))
+        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board10x10, initial))
+        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board12x10, initial))
 
         self.world.collect(self.collection_state, self.create_test_item("Board Files"))
-        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board12x10))
-        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board12x12))
+        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board12x10, initial))
+        self.assertFalse(has_board_stage(self.collection_state, self.player, BoardStage.Board12x12, initial))
 
         self.world.collect(self.collection_state, self.create_test_item("Board Ranks"))
-        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board12x12))
+        self.assertTrue(has_board_stage(self.collection_state, self.player, BoardStage.Board12x12, initial))

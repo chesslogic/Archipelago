@@ -1,6 +1,11 @@
-"""Canonical, dependency-light APMW v2 semantic projection package."""
+"""Canonical, dependency-light APMW semantic projection package."""
 
-from .contract import ApmwContractError, ApmwContractV2, parse_contract
+from .contract import (
+    ApmwContractError,
+    ApmwContractV2,
+    ApmwContractV3,
+    parse_contract,
+)
 from .protocol import (
     CONTRACT_MISMATCH,
     INVALID_JSON,
@@ -14,18 +19,24 @@ from .protocol import (
     handle_batch_request,
     handle_json_request,
 )
-from .resource import FROZEN_CONTRACT_HASH, load_frozen_contract
+from .resource import (
+    FROZEN_CONTRACT_HASH,
+    MINIMUM_CLIENT_VERSION,
+    load_frozen_contract,
+)
 from .semantic import ProjectionError, project_semantic_roster
 
 
 __all__ = (
     "ApmwContractError",
     "ApmwContractV2",
+    "ApmwContractV3",
     "CONTRACT_MISMATCH",
     "FROZEN_CONTRACT_HASH",
     "INVALID_JSON",
     "INVALID_PROTOCOL",
     "INVALID_REQUEST",
+    "MINIMUM_CLIENT_VERSION",
     "PROJECTION_ERROR",
     "PROTOCOL_VERSION",
     "ProtocolError",

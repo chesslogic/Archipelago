@@ -49,8 +49,14 @@ class MaterialModel:
 
     def calculate_material_requirements(self) -> tuple[float, float]:
         """Calculate the minimum and maximum material requirements based on world options."""
-        min_material = determine_min_material(self.world.options)
-        max_material = determine_max_material(self.world.options)
+        min_material = determine_min_material(
+            self.world.options,
+            self.world.geometry_progression,
+        )
+        max_material = determine_max_material(
+            self.world.options,
+            self.world.geometry_progression,
+        )
 
         # We already handle 50 material due to Play as White being forced into the item pool
         min_material -= 50

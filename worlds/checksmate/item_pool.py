@@ -25,8 +25,7 @@ from .item_utils import (
     required_castler_material_items,
 )
 from .locations import (
-    highest_chessmen_requirement,
-    highest_chessmen_requirement_small,
+    chessmen_requirement_for_world,
 )
 from .options import early_material_candidates
 from .piece_model import PieceModel
@@ -100,10 +99,7 @@ class CMItemPool:
         for name, raw_count in counts.items():
             if name not in item_table or not item_allowed_in_mode(name, self.itemization):
                 continue
-            if (
-                name in GEOMETRY_ITEMS
-                and self.world.options.goal.value == self.world.options.goal.option_single
-            ):
+            if name in GEOMETRY_ITEMS:
                 continue
             count = max(0, int(raw_count))
             maximum = generated_item_maximum(self.world, name)
@@ -165,6 +161,12 @@ class CMItemPool:
 
     def validate_options(self) -> None:
         self.resolve_early_material_item()
+        for name, count in self.world.options.start_inventory.value.items():
+            if name in GEOMETRY_ITEMS | {"Super-Size Me"} and count:
+                raise OptionError(
+                    f"ChecksMate Start Inventory: '{name}' is a fixed "
+                    "board-series unlock and cannot be precollected."
+                )
         locked = dict(self.world.options.locked_items.value)
         from_pool = dict(
             getattr(
@@ -200,21 +202,12 @@ class CMItemPool:
                     f"{maximum}."
                 )
 
-        super_sized = (
-            self.world.options.goal.value
-            != self.world.options.goal.option_single
-        )
         reserved_locations = 1 + int(
             self.resolve_early_material_item() is not None
         )
-        if (
-            self.world.options.goal.value
-            == self.world.options.goal.option_ordered_progressive
-        ):
-            reserved_locations += 4
+        reserved_locations += len(self.world.geometry_progression.transitions)
         capacity = PoolCapacity.for_world(
             self.world,
-            super_sized,
             reserved_locations=reserved_locations,
         ).item_limit
         required_slots = sum(planned.values())
@@ -271,14 +264,11 @@ class CMItemPool:
                     f"ChecksMate {option_name}: '{name}' is unavailable with "
                     f"progression_itemization '{self.itemization.value}'."
                 )
-            if (
-                name in GEOMETRY_ITEMS
-                and self.world.options.goal.value
-                == self.world.options.goal.option_single
-            ):
+            if name in GEOMETRY_ITEMS:
                 raise OptionError(
-                    f"ChecksMate {option_name}: '{name}' is unavailable for "
-                    "goal 'single'."
+                    f"ChecksMate {option_name}: '{name}' is a fixed "
+                    "board-series event and cannot be requested from the "
+                    "generated pool."
                 )
 
             maximum = generated_item_maximum(self.world, name)
@@ -309,14 +299,13 @@ class CMItemPool:
         if early_item is not None:
             fixed[early_item] += 1
 
-        goal = self.world.options.goal
-        if goal.value == goal.option_ordered_progressive:
-            fixed.update({"Board Files": 2, "Board Ranks": 2})
-        elif goal.value == goal.option_progressive:
-            mandatory.update({"Board Files": 2, "Board Ranks": 2})
-        elif goal.value == goal.option_super:
-            fixed["Board Files"] += 1
-            mandatory.update({"Board Files": 1, "Board Ranks": 2})
+        generated = self.world.geometry_progression.generated_unlocks
+        fixed.update(
+            {
+                "Board Files": generated.board_files,
+                "Board Ranks": generated.board_ranks,
+            }
+        )
         return fixed, mandatory
 
     def _minimum_pool_plan(
@@ -390,12 +379,7 @@ class CMItemPool:
                     "Chessmen",
                     max(
                         0,
-                        (
-                            highest_chessmen_requirement_small
-                            if self.world.options.goal.value
-                            == self.world.options.goal.option_single
-                            else highest_chessmen_requirement
-                        )
+                        chessmen_requirement_for_world(self.world)
                         - pocket_chessmen,
                     ),
                 )
@@ -476,7 +460,6 @@ class CMItemPool:
         )
 
     def create_items(self, reserved_locations: int = 1) -> list[Item]:
-        super_sized = self.world.options.goal.value != self.world.options.goal.option_single
         self.validate_options()
         self.initialize_item_tracking()
 
@@ -509,7 +492,6 @@ class CMItemPool:
 
         capacity = PoolCapacity.for_world(
             self.world,
-            super_sized,
             reserved_locations=reserved_locations + len(starter_items),
         )
         max_items = capacity.item_limit
@@ -576,18 +558,7 @@ class CMItemPool:
         return dict(locked_items)
 
     def initialize_remaining_geometry_unlocks(self) -> list[Item]:
-        if self.world.options.goal.value == self.world.options.goal.option_single:
-            return []
-        items = []
-        for name in ("Board Files", "Board Ranks"):
-            remaining = (
-                item_table[name].quantity
-                - self.accounting.used_count(name)
-            )
-            for _ in range(max(0, remaining)):
-                self.consume_item(name, {})
-                items.append(self.world.create_item(name))
-        return items
+        return []
 
     def initialize_item_tracking(self) -> None:
         """Reset this world's item accounting."""
@@ -597,11 +568,6 @@ class CMItemPool:
         """Initialize required items that remain in the randomized pool."""
         items = []
         
-        # Current-schema v2 uses independent geometry unlock items.
-        if self.world.options.goal.value == self.world.options.goal.option_progressive:
-            items.append(self.world.create_item("Board Files"))
-            self.consume_item("Board Files", {})
-            
         # Add Play as White
         items.append(self.world.create_item("Play as White"))
         self.accounting.set_used("Play as White", 1)
@@ -610,10 +576,6 @@ class CMItemPool:
 
     def get_excluded_items(self) -> dict[str, int]:
         """Account for world-owned precollected items, not user inventory."""
-        if self.world.options.goal.value == self.world.options.goal.option_super:
-            item = self.world.create_item("Board Files")
-            self.world.multiworld.push_precollected(item)
-            return {"Board Files": 1}
         return {}
 
     def assign_starter_items(self,
@@ -622,21 +584,24 @@ class CMItemPool:
         """Assign starter items based on game options."""
         user_items = []
         
-        # Handle ordered progression
-        if self.world.options.goal.value == self.world.options.goal.option_ordered_progressive:
-            ordered_unlocks = (
-                ("Checkmate Minima", "Board Files"),
-                ("Checkmate Maxima", "Board Ranks"),
-                ("Checkmate 10x10", "Board Files"),
-                ("Checkmate 12x10", "Board Ranks"),
+        for transition in self.world.geometry_progression.transitions:
+            delta = transition.unlock_delta
+            if delta.board_files + delta.board_ranks != 1:
+                raise RuntimeError(
+                    "ChecksMate board series contains a non-unit geometry "
+                    f"transition from {transition.source.stage_id} to "
+                    f"{transition.destination.stage_id}."
+                )
+            item_name = (
+                "Board Files" if delta.board_files else "Board Ranks"
             )
-            for location_name, item_name in ordered_unlocks:
-                item = self.world.create_item(item_name)
-                self.world.multiworld.get_location(
-                    location_name, self.world.player
-                ).place_locked_item(item)
-                locked_locations.append(location_name)
-                user_items.append(item)
+            location_name = transition.source.victory.location_name
+            item = self.world.create_item(item_name)
+            self.world.multiworld.get_location(
+                location_name, self.world.player
+            ).place_locked_item(item)
+            locked_locations.append(location_name)
+            user_items.append(item)
 
         # Handle early material option
         early_material_item = self.resolve_early_material_item()
@@ -713,12 +678,9 @@ class CMItemPool:
         )
         return additional
 
-    def get_max_items(self, super_sized: bool) -> int:
+    def get_max_items(self) -> int:
         """Calculate the maximum number of items based on world options."""
-        return PoolCapacity.for_world(
-            self.world,
-            super_sized,
-        ).location_count
+        return PoolCapacity.for_world(self.world).location_count
 
     def create_progression_items(
         self,

@@ -50,7 +50,7 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures" / "projection-v2"
 CASES_FIXTURE = FIXTURE_DIR / "cases.json"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PROJECTOR_ENTRY = REPOSITORY_ROOT / "worlds" / "checksmate" / "tools" / "apmw_projector.py"
-EXPECTED_CONTRACT_HASH = "f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15"
+EXPECTED_CONTRACT_HASH = "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2"
 EXPECTED_PROTOCOL_VERSION = 1
 EXPECTED_RUNTIME_SEMANTIC_VERSION = "0.1.0"
 
@@ -73,7 +73,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
                 field: copy.deepcopy(base_input[field])
                 for field in ("itemization", "ordering", "seeds", "item_counts")
             },
-            "geometries": ["8x8", "10x8", "10x10", "12x10", "12x12"],
+            "geometries": ["6x8", "8x8", "10x8", "10x10", "12x10", "12x12"],
         }
 
     def test_all_geometries_use_frozen_contract_and_fixture_projection(self):
@@ -87,9 +87,30 @@ class TestApmwProjectionProtocol(unittest.TestCase):
             self.request["geometries"],
             [result["geometry_stage"] for result in response["results"]],
         )
-        for result in response["results"]:
+        prologue = response["results"][0]["projection"]
+        self.assertEqual((6, 8), (prologue["files"], prologue["ranks"]))
+        self.assertEqual(29, prologue["region_usage"]["combined_non_primary_capacity"])
+        self.assertEqual(11, prologue["region_usage"]["non_pawn_capacity"])
+        self.assertEqual(24, prologue["region_usage"]["gross_pawn_capacity"])
+        expected_unlocks = {
+            "8x8": (1, 0),
+            "10x8": (2, 0),
+            "10x10": (2, 1),
+            "12x10": (3, 1),
+            "12x12": (3, 2),
+        }
+        for result in response["results"][1:]:
+            expected = copy.deepcopy(
+                self.geometry_cases[result["geometry_stage"]]["output"]
+            )
+            expected["contract_hash"] = EXPECTED_CONTRACT_HASH
+            files, ranks = expected_unlocks[result["geometry_stage"]]
+            expected["effective_counts"]["unlocks"] = [
+                {"count": files, "role_id": "board-file-unlock"},
+                {"count": ranks, "role_id": "board-rank-unlock"},
+            ]
             self.assertEqual(
-                self.geometry_cases[result["geometry_stage"]]["output"],
+                expected,
                 result["projection"],
             )
 
@@ -109,7 +130,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
         request["request_id"] = "characterization"
         request["geometries"] = ["8x8"]
         expected_request = (
-            '{"contract_hash":"f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15",'
+            '{"contract_hash":"18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",'
             '"geometries":["8x8"],"input":{"item_counts":{"Progressive Pawn":8},'
             '"itemization":"legacy","ordering":"stable","seeds":{"major_seed":"404",'
             '"minor_seed":"303","pawn_seed":"202","pocket_seed":"101","queen_seed":"505"}},'
@@ -119,7 +140,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
         self.assertEqual(expected_request, canonical_json(request))
         response_text = canonical_json(handle_json_request(expected_request))
         self.assertEqual(
-            "9e207c4907cf93c1a4f44ba4d22605107664ffa0aeb5447c3b5c095ec8bbc728",
+            "7628b9dee115fc2a182e3ef089bcc69d10d62da610c1c7613a95ef3e63b4957d",
             hashlib.sha256(response_text.encode("ascii")).hexdigest(),
         )
         response = json.loads(response_text)
@@ -149,7 +170,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
             ),
             (
                 CONTRACT_MISMATCH,
-                "contract hash does not match frozen v2 contract",
+                "contract hash does not match frozen v3 contract",
                 lambda: handle_batch_request(
                     {**self.request, "contract_hash": "not-the-frozen-contract"}
                 ),
@@ -163,7 +184,7 @@ class TestApmwProjectionProtocol(unittest.TestCase):
             ),
             (
                 UNKNOWN_GEOMETRY,
-                "geometry is not defined by frozen v2 contract",
+                "geometry is not defined by frozen v3 contract",
                 lambda: handle_batch_request(
                     {**self.request, "geometries": ["9x9"]}
                 ),

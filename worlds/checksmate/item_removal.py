@@ -15,7 +15,9 @@ from .items import (
     itemization_mode,
     progression_items,
 )
-from .locations import highest_chessmen_requirement_small, highest_chessmen_requirement
+from .locations import (
+    chessmen_requirement_for_world,
+)
 from .piece_limit_cascade import PieceLimitCascade
 
 
@@ -172,9 +174,7 @@ class ItemRemoval:
 
     def _get_chessmen_requirement(self) -> int:
         """Get the chessmen requirement based on game mode."""
-        return (highest_chessmen_requirement_small 
-                if self.world.options.goal.value == self.world.options.goal.option_single
-                else highest_chessmen_requirement)
+        return chessmen_requirement_for_world(self.world)
 
     def _count_chessmen(
         self,

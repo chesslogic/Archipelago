@@ -3,7 +3,7 @@ import functools
 from .cm_mock_test_case import CMMockTestCase
 from ..item_pool import CMItemPool
 from ..items import progression_items
-from ..options import EnableTactics
+from ..options import EnableTactics, MaxBoardSize
 
 
 class TestItemPool(CMMockTestCase):
@@ -43,14 +43,16 @@ class TestItemPool(CMMockTestCase):
 
     def test_max_items_calculation(self):
         """Test that max items are calculated correctly based on options"""
-        base_max = self.item_pool.get_max_items(super_sized=False)
-        super_max = self.item_pool.get_max_items(super_sized=True)
+        self.world.options.max_board_size = MaxBoardSize.from_any("10x8")
+        base_max = self.item_pool.get_max_items()
+        self.world.options.max_board_size = MaxBoardSize.from_any("12x10")
+        super_max = self.item_pool.get_max_items()
         self.assertGreater(super_max, base_max)
         
         # Test with tactics disabled
         self.world.options.enable_tactics = EnableTactics(EnableTactics.option_none)
-        no_tactics_max = self.item_pool.get_max_items(super_sized=False)
-        self.assertLess(no_tactics_max, base_max)
+        no_tactics_max = self.item_pool.get_max_items()
+        self.assertLess(no_tactics_max, super_max)
 
     def test_item_consumption_tracking(self):
         """Test that item consumption is tracked correctly"""

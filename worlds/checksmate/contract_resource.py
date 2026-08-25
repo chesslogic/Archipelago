@@ -8,11 +8,16 @@ from .apmw_projection.resource import (
     load_frozen_contract as load_production_contract,
     mode_item_maxima,
 )
-from .apmw_projection.contract import ApmwContractV2, parse_contract
+from .apmw_projection.contract import (
+    ApmwContractV2,
+    ApmwContractV3,
+    parse_contract,
+)
 
 
 __all__ = (
     "ApmwContractV2",
+    "ApmwContractV3",
     "CONTRACT_RESOURCE",
     "UNLOCK_ITEM_ROLES",
     "load_production_contract",

@@ -1,7 +1,13 @@
 from dataclasses import dataclass
-from enum import Enum, IntEnum, StrEnum
+from enum import Enum, StrEnum
 
 from BaseClasses import Location
+
+from .geometry_progression import (
+    BoardStage,
+    MaterialCalibration,
+    geometry_for_stage,
+)
 
 
 class CMLocation(Location):
@@ -19,30 +25,27 @@ class TacticsMode(StrEnum):
     NONE = "none"
 
 
-class BoardStage(IntEnum):
-    Board8x8 = 0
-    Board10x8 = 1
-    Board10x10 = 2
-    Board12x10 = 3
-    Board12x12 = 4
-
-
 GEOMETRY_UNLOCKS_BY_STAGE = {
-    BoardStage.Board8x8: (0, 0),
-    BoardStage.Board10x8: (1, 0),
-    BoardStage.Board10x10: (1, 1),
-    BoardStage.Board12x10: (2, 1),
-    BoardStage.Board12x12: (2, 2),
+    stage: (
+        geometry_for_stage(stage).unlocks.board_files,
+        geometry_for_stage(stage).unlocks.board_ranks,
+    )
+    for stage in BoardStage
 }
 
 STAGE_IDS = {
-    BoardStage.Board8x8: "8x8",
-    BoardStage.Board10x8: "10x8",
-    BoardStage.Board10x10: "10x10",
-    BoardStage.Board12x10: "12x10",
-    BoardStage.Board12x12: "12x12",
+    stage: geometry_for_stage(stage).stage_id
+    for stage in BoardStage
 }
 
+_VICTORY_PROFILES_BY_STAGE = {
+    stage: geometry_for_stage(stage).victory
+    for stage in BoardStage
+}
+_VICTORY_LOCATION_CODES = frozenset(
+    profile.location_code
+    for profile in _VICTORY_PROFILES_BY_STAGE.values()
+)
 CHECKMATE_12_FILE_MATERIAL = 8_020  # Checkmate Maxima plus two outer attendants at about 1000 each.
 
 
@@ -55,13 +58,23 @@ class CMLocationData:
     # c. fork/pin
     material_expectations: int | None
     # material in grand chess mode
-    material_expectations_grand: int
+    material_expectations_grand: int | None
     chessmen_expectations: int = 0
     is_tactic: Tactic | None = None
     required_stage: BoardStage = BoardStage.Board8x8
     use_grand_material_when_expanded: bool = False
     chessmen_expectations_grand: int | None = None
     required_stage_when_expanded: BoardStage | None = None
+    compact_available: bool | None = None
+
+    @property
+    def material_calibration(self) -> MaterialCalibration:
+        if (
+            self.material_expectations is None
+            and self.material_expectations_grand is None
+        ):
+            return MaterialCalibration.UNSUPPORTED
+        return MaterialCalibration.CALIBRATED
 
     def material_requirement(
         self,
@@ -69,6 +82,8 @@ class CMLocationData:
         force_grand: bool = False,
     ) -> int | None:
         if not expanded:
+            return self.material_expectations
+        if self.material_expectations_grand is None:
             return self.material_expectations
         if (
             force_grand
@@ -102,9 +117,9 @@ location_table = {
     "Capture Pawn D": CMLocationData(4_902_003, 100, 520),
     "Capture Pawn E": CMLocationData(4_902_004, 100, 320),
     "Capture Pawn F": CMLocationData(4_902_005, 320, 320),
-    "Capture Pawn G": CMLocationData(4_902_006, 390, 620),
+    "Capture Pawn G": CMLocationData(4_902_006, 390, 620, compact_available=False),
     # AI prefers not to use edge pawns early - thus they stay defended longer
-    "Capture Pawn H": CMLocationData(4_902_007, 490, 860),
+    "Capture Pawn H": CMLocationData(4_902_007, 490, 860, compact_available=False),
     "Capture Pawn I": CMLocationData(4_902_101, None, 810, required_stage=BoardStage.Board10x8),
     "Capture Pawn J": CMLocationData(4_902_102, None, 890, required_stage=BoardStage.Board10x8),
     "Capture Pawn K": CMLocationData(4_902_103, None, 970, required_stage=BoardStage.Board12x10),
@@ -113,24 +128,49 @@ location_table = {
     "Capture Piece Queen's Rook": CMLocationData(4_902_008, 1500, 2850),
     "Capture Piece Queen's Knight": CMLocationData(4_902_010, 700, 1200),
     "Capture Piece Queen's Bishop": CMLocationData(4_902_012, 1040, 1200),
-    "Capture Piece Queen": CMLocationData(4_902_014, 1300, 4100),
-    "Checkmate Minima": CMLocationData(4_902_098, 4020, 4020),  # (this is the game's goal / completion condition)
+    "Capture Piece Queen": CMLocationData(4_902_014, 1300, 4100, compact_available=False),
+    "Checkmate 6x8": CMLocationData(
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board6x8].location_code,
+        None,
+        None,
+        required_stage=BoardStage.Board6x8,
+    ),
+    "Checkmate Minima": CMLocationData(
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board8x8].location_code,
+        4020,
+        4020,
+        compact_available=False,
+    ),
     "Checkmate Maxima": CMLocationData(
-        4_902_099, None, 6020, required_stage=BoardStage.Board10x8
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board10x8].location_code,
+        None,
+        6020,
+        required_stage=BoardStage.Board10x8,
     ),
     "Checkmate 10x10": CMLocationData(
-        4_902_105, None, 6020, required_stage=BoardStage.Board10x10
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board10x10].location_code,
+        None,
+        6020,
+        required_stage=BoardStage.Board10x10,
     ),
     "Checkmate 12x10": CMLocationData(
-        4_902_106, None, CHECKMATE_12_FILE_MATERIAL, required_stage=BoardStage.Board12x10
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board12x10].location_code,
+        None,
+        CHECKMATE_12_FILE_MATERIAL,
+        required_stage=BoardStage.Board12x10,
     ),
     "Checkmate 12x12": CMLocationData(
-        4_902_107, None, CHECKMATE_12_FILE_MATERIAL, required_stage=BoardStage.Board12x12
+        _VICTORY_PROFILES_BY_STAGE[BoardStage.Board12x12].location_code,
+        None,
+        CHECKMATE_12_FILE_MATERIAL,
+        required_stage=BoardStage.Board12x12,
     ),
     # AI prefers not to open kingside as developing queen has more tempo
     "Capture Piece King's Bishop": CMLocationData(4_902_013, 1140, 1400),
     "Capture Piece King's Knight": CMLocationData(4_902_011, 1040, 1400),
-    "Capture Piece King's Rook": CMLocationData(4_902_009, 1900, 3250),
+    "Capture Piece King's Rook": CMLocationData(
+        4_902_009, 1900, 3250, compact_available=False
+    ),
     "Capture Piece Queen's Attendant": CMLocationData(
         4_902_109, None, 3950, required_stage=BoardStage.Board10x8
     ),
@@ -156,8 +196,8 @@ location_table = {
     "Capture 4 Pawns": CMLocationData(4_902_022, 2240, 3240, 3),
     "Capture 5 Pawns": CMLocationData(4_902_023, 2620, 3620, 4),
     "Capture 6 Pawns": CMLocationData(4_902_024, 2975, 3975, 5),
-    "Capture 7 Pawns": CMLocationData(4_902_025, 3255, 4255, 6),
-    "Capture 8 Pawns": CMLocationData(4_902_026, 3545, 4545, 7),
+    "Capture 7 Pawns": CMLocationData(4_902_025, 3255, 4255, 6, compact_available=False),
+    "Capture 8 Pawns": CMLocationData(4_902_026, 3545, 4545, 7, compact_available=False),
     "Capture 9 Pawns": CMLocationData(
         4_902_120, None, 4645, 8, required_stage=BoardStage.Board10x8
     ),
@@ -175,8 +215,8 @@ location_table = {
     "Capture 3 Pieces": CMLocationData(4_902_028, 2100, 3400, 2),
     "Capture 4 Pieces": CMLocationData(4_902_029, 2770, 3750, 3),
     "Capture 5 Pieces": CMLocationData(4_902_030, 2950, 4150, 4),
-    "Capture 6 Pieces": CMLocationData(4_902_031, 3300, 4500, 5),
-    "Capture 7 Pieces": CMLocationData(4_902_032, 3750, 4900, 6),
+    "Capture 6 Pieces": CMLocationData(4_902_031, 3300, 4500, 5, compact_available=False),
+    "Capture 7 Pieces": CMLocationData(4_902_032, 3750, 4900, 6, compact_available=False),
     "Capture 8 Pieces": CMLocationData(
         4_902_122, None, 5200, 7, required_stage=BoardStage.Board10x8
     ),
@@ -193,8 +233,8 @@ location_table = {
     "Capture 3 Of Each": CMLocationData(4_902_034, 2650, 4550, 5),
     "Capture 4 Of Each": CMLocationData(4_902_035, 2950, 4900, 7),
     "Capture 5 Of Each": CMLocationData(4_902_036, 3200, 5200, 9),
-    "Capture 6 Of Each": CMLocationData(4_902_037, 3500, 5450, 11),
-    "Capture 7 Of Each": CMLocationData(4_902_038, 3850, 5650, 13),
+    "Capture 6 Of Each": CMLocationData(4_902_037, 3500, 5450, 11, compact_available=False),
+    "Capture 7 Of Each": CMLocationData(4_902_038, 3850, 5650, 13, compact_available=False),
     "Capture 8 Of Each": CMLocationData(
         4_902_130, None, 5850, 15, required_stage=BoardStage.Board10x8
     ),
@@ -225,10 +265,10 @@ location_table = {
     "Capture Any 8": CMLocationData(4_902_076, 3000, 4000, 7),
     "Capture Any 9": CMLocationData(4_902_077, 3150, 4150, 8),
     "Capture Any 10": CMLocationData(4_902_078, 3300, 4350, 9),
-    "Capture Any 11": CMLocationData(4_902_079, 3450, 4650, 10),
-    "Capture Any 12": CMLocationData(4_902_080, 3600, 5000, 11),
-    "Capture Any 13": CMLocationData(4_902_081, 3750, 5350, 12),
-    "Capture Any 14": CMLocationData(4_902_082, 3900, 5600, 13),
+    "Capture Any 11": CMLocationData(4_902_079, 3450, 4650, 10, compact_available=False),
+    "Capture Any 12": CMLocationData(4_902_080, 3600, 5000, 11, compact_available=False),
+    "Capture Any 13": CMLocationData(4_902_081, 3750, 5350, 12, compact_available=False),
+    "Capture Any 14": CMLocationData(4_902_082, 3900, 5600, 13, compact_available=False),
     "Capture Any 15": CMLocationData(
         4_902_083, None, 5750, 14, required_stage=BoardStage.Board10x8
     ),
@@ -279,7 +319,7 @@ location_table = {
     # "Skewer": CMLocationData(4_902_062, 600),
     # "Pawn Promotion": CMLocationData(4_902_063, 3000),
     # "Multiple Queens": CMLocationData(4_902_064, 3900),
-    # goal 1+ requires that you successively checkmate your opponent as they gain material
+    # Board-series transitions successively checkmate stronger formations.
 
 }
 
@@ -302,28 +342,105 @@ def tactics_mode_for_options(options) -> TacticsMode:
     return TacticsMode.ALL
 
 
+def location_available_at_stage(
+    name: str,
+    stage: BoardStage,
+) -> bool:
+    data = location_table[name]
+    if stage == BoardStage.Board6x8:
+        if data.compact_available is not None:
+            return data.compact_available
+        return data.required_stage <= BoardStage.Board8x8
+    return data.required_stage <= stage
+
+
 def location_names_for_stage(
     stage: BoardStage,
     tactics_mode: TacticsMode | str = TacticsMode.ALL,
+    progression_start: BoardStage | None = None,
 ) -> tuple[str, ...]:
     try:
         mode = TacticsMode(tactics_mode)
     except ValueError as error:
         raise ValueError(f"Unknown tactics mode: {tactics_mode}") from error
+    if progression_start is None:
+        progression_start = (
+            BoardStage.Board6x8
+            if stage == BoardStage.Board6x8
+            else BoardStage.Board8x8
+        )
+
     return tuple(
         name for name, data in location_table.items()
-        if data.required_stage <= stage
+        if location_available_at_stage(name, stage)
+        and not (
+            data.code in _VICTORY_LOCATION_CODES
+            and data.required_stage < progression_start
+        )
         and not (mode is TacticsMode.NONE and data.is_tactic is not None)
         and not (mode is TacticsMode.TURNS and data.is_tactic == Tactic.Fork)
     )
 
 
 def geometry_unlocks_for_stage(stage: BoardStage) -> tuple[int, int]:
-    return GEOMETRY_UNLOCKS_BY_STAGE[stage]
+    metadata = geometry_for_stage(stage)
+    return metadata.unlocks.board_files, metadata.unlocks.board_ranks
 
 
 def stage_id(stage: BoardStage) -> str:
-    return STAGE_IDS[stage]
+    return geometry_for_stage(stage).stage_id
+
+
+def uses_expanded_profile(
+    data: CMLocationData,
+    endpoint: BoardStage,
+) -> bool:
+    if data.required_stage_when_expanded is not None:
+        return endpoint >= data.required_stage_when_expanded
+    return endpoint > BoardStage.Board8x8
+
+
+def rule_stage_for_series(
+    name: str,
+    start: BoardStage,
+    endpoint: BoardStage,
+) -> BoardStage:
+    data = location_table[name]
+    expanded = uses_expanded_profile(data, endpoint)
+    stage = data.stage_requirement(expanded)
+    if (
+        start == BoardStage.Board6x8
+        and stage == BoardStage.Board8x8
+        and location_available_at_stage(name, start)
+    ):
+        return start
+    return max(stage, start)
+
+
+def highest_chessmen_requirement_for_series(
+    start: BoardStage,
+    endpoint: BoardStage,
+    tactics_mode: TacticsMode | str = TacticsMode.ALL,
+) -> int:
+    return max(
+        location_table[name].chessmen_requirement(
+            uses_expanded_profile(location_table[name], endpoint)
+        )
+        for name in location_names_for_stage(
+            endpoint,
+            tactics_mode,
+            progression_start=start,
+        )
+    )
+
+
+def chessmen_requirement_for_world(world) -> int:
+    progression = world.geometry_progression
+    return highest_chessmen_requirement_for_series(
+        progression.stages[0].stage,
+        progression.endpoint.stage,
+        tactics_mode_for_options(world.options),
+    )
 
 
 highest_chessmen_requirement_small = max(

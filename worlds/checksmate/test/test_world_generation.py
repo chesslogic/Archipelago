@@ -73,6 +73,7 @@ class TestWorldGeneration(CMTestBase):
         expected_keys = {
             "army",
             "apmw_contract",
+            "apmw_contract_version",
             "castling_location_count",
             "death_link",
             "difficulty",
@@ -83,15 +84,22 @@ class TestWorldGeneration(CMTestBase):
             "fairy_chess_pawns",
             "fairy_chess_pieces",
             "fairy_chess_pieces_configure",
-            "goal",
+            "geometry_baseline",
+            "geometry_end",
+            "geometry_end_unlocks",
+            "geometry_generated_unlocks",
+            "geometry_start",
+            "geometry_start_unlocks",
             "geometry_unlock_items",
             "major_piece_limit_by_type",
             "logic_obtainable_counts",
             "material_item_value",
+            "max_board_size",
             "max_pocket",
             "major_seed",
             "minor_piece_limit_by_type",
             "minor_seed",
+            "min_board_size",
             "pawn_seed",
             "piece_locations",
             "piece_types",
@@ -126,8 +134,25 @@ class TestWorldGeneration(CMTestBase):
                 "Petal",
                 "Rookies",
             ],
-            "goal": 1,
+            "min_board_size": 0,
+            "max_board_size": 3,
+            "apmw_contract_version": {"major": 3, "minor": 0},
             "castling_location_count": 2,
+            "geometry_baseline": {"files": 8, "ranks": 8},
+            "geometry_end": "12x10",
+            "geometry_end_unlocks": {
+                "board-file-unlock": 3,
+                "board-rank-unlock": 1,
+            },
+            "geometry_generated_unlocks": {
+                "board-file-unlock": 2,
+                "board-rank-unlock": 1,
+            },
+            "geometry_start": "8x8",
+            "geometry_start_unlocks": {
+                "board-file-unlock": 1,
+                "board-rank-unlock": 0,
+            },
             "geometry_unlock_items": {
                 "Board Files": "board-file-unlock",
                 "Board Ranks": "board-rank-unlock",
@@ -144,7 +169,7 @@ class TestWorldGeneration(CMTestBase):
             "piece_upgrade_ratio": DEFAULT_PIECE_UPGRADE_RATIO,
             "pocket_limit_by_pocket": 4,
             "queen_piece_limit_by_type": 0,
-            "required_chess_client_version": "0.4.0",
+            "required_chess_client_version": "0.5.0",
         }
 
         self.assertEqual(expected_keys, set(slot_data))
@@ -153,9 +178,9 @@ class TestWorldGeneration(CMTestBase):
             {key: slot_data[key] for key in expected_options},
         )
         self.assertNotIn("piece_upgrade_proportion", slot_data)
-        self.assertEqual("f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15",
+        self.assertEqual("18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2",
                          slot_data["apmw_contract"]["manifest_sha256"])
-        self.assertEqual("0.4.0", slot_data["apmw_contract"]["minimum_client_version"])
+        self.assertEqual("0.5.0", slot_data["apmw_contract"]["minimum_client_version"])
         self.assertEqual(
             self.world.pool_accounting.used_count("Progressive Major To Queen"),
             slot_data["total_queens"],

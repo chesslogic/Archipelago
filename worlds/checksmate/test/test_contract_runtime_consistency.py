@@ -20,8 +20,10 @@ from ..locations import (
 
 
 CHECKSMATE_ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_CONTRACT_HASH = "f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15"
-EXPECTED_RESOURCE_SHA256 = "56eb5e5e8ccfe69babd1fda0820a6e81497f542679a1061ba62488bb0f0518fb"
+EXPECTED_CONTRACT_HASH = "18f0b662507ed3d18b6ac8674117d79739a62316ef2d3feaff7659ccb96980d2"
+EXPECTED_RESOURCE_SHA256 = "aedf52178f977a9a0dcfd7ae4c60a9c2f95c56e348fe454a1afeffaae7ca9085"
+EXPECTED_V2_CONTRACT_HASH = "f1456e916285bf79dd4be6f4c8c6e5798ed7bb1eebd2f6e1f81075f39e8ffc15"
+EXPECTED_V2_RESOURCE_SHA256 = "56eb5e5e8ccfe69babd1fda0820a6e81497f542679a1061ba62488bb0f0518fb"
 EXPECTED_MAXIMA = {
     "common": {
         "Play as White": 1,
@@ -61,11 +63,12 @@ EXPECTED_MATERIAL = {
     "king_promotion": 425,
 }
 EXPECTED_STAGES = (
-    (BoardStage.Board8x8, "8x8", (0, 0), (71, 65, 61)),
-    (BoardStage.Board10x8, "10x8", (1, 0), (86, 80, 76)),
-    (BoardStage.Board10x10, "10x10", (1, 1), (87, 81, 77)),
-    (BoardStage.Board12x10, "12x10", (2, 1), (102, 96, 92)),
-    (BoardStage.Board12x12, "12x12", (2, 2), (103, 97, 93)),
+    (BoardStage.Board6x8, "6x8", (0, 0), (57, 51, 47)),
+    (BoardStage.Board8x8, "8x8", (1, 0), (71, 65, 61)),
+    (BoardStage.Board10x8, "10x8", (2, 0), (86, 80, 76)),
+    (BoardStage.Board10x10, "10x10", (2, 1), (87, 81, 77)),
+    (BoardStage.Board12x10, "12x10", (3, 1), (102, 96, 92)),
+    (BoardStage.Board12x12, "12x12", (3, 2), (103, 97, 93)),
 )
 
 
@@ -79,9 +82,22 @@ class TestContractRuntimeConsistency(unittest.TestCase):
             CHECKSMATE_ROOT
             / "apmw_projection"
             / "data"
+            / "apmw_contract_v3.json"
+        )
+        current_snapshot = (
+            CHECKSMATE_ROOT
+            / "test"
+            / "fixtures"
+            / "projection-v3"
+            / "baseline.json"
+        )
+        v2_resource = (
+            CHECKSMATE_ROOT
+            / "apmw_projection"
+            / "data"
             / "apmw_contract_v2.json"
         )
-        compatibility_snapshot = (
+        v2_snapshot = (
             CHECKSMATE_ROOT
             / "test"
             / "fixtures"
@@ -94,7 +110,7 @@ class TestContractRuntimeConsistency(unittest.TestCase):
         canonical_text = canonical.read_text(encoding="utf-8")
         self.assertEqual(
             canonical_text,
-            compatibility_snapshot.read_text(encoding="utf-8"),
+            current_snapshot.read_text(encoding="utf-8"),
         )
         canonical_bytes = canonical_text.encode("utf-8")
         self.assertEqual(
@@ -106,6 +122,16 @@ class TestContractRuntimeConsistency(unittest.TestCase):
             compute_manifest_sha256(canonical_text),
         )
         self.assertEqual(EXPECTED_CONTRACT_HASH, FROZEN_CONTRACT_HASH)
+        v2_text = v2_resource.read_text(encoding="utf-8")
+        self.assertEqual(v2_text, v2_snapshot.read_text(encoding="utf-8"))
+        self.assertEqual(
+            EXPECTED_V2_RESOURCE_SHA256,
+            hashlib.sha256(v2_text.encode("utf-8")).hexdigest(),
+        )
+        self.assertEqual(
+            EXPECTED_V2_CONTRACT_HASH,
+            compute_manifest_sha256(v2_text),
+        )
         self.assertEqual(1, PROTOCOL_VERSION)
         self.assertEqual("0.1.0", RUNTIME_SEMANTIC_VERSION)
 
@@ -113,9 +139,20 @@ class TestContractRuntimeConsistency(unittest.TestCase):
         metadata = json.loads(
             (CHECKSMATE_ROOT / "archipelago.json").read_text(encoding="utf-8")
         )
-        self.assertEqual("0.4.0", self.contract.minimum_client_version)
-        self.assertEqual("0.4.0", CMWorld.required_chess_client_version)
-        self.assertEqual("0.4.0", metadata["world_version"])
+        self.assertEqual("0.5.0", self.contract.minimum_client_version)
+        self.assertEqual("0.5.0", CMWorld.required_chess_client_version)
+        self.assertEqual("0.5.0", metadata["world_version"])
+        self.assertEqual(
+            "0.4.0",
+            json.loads(
+                (
+                    CHECKSMATE_ROOT
+                    / "apmw_projection"
+                    / "data"
+                    / "apmw_contract_v2.json"
+                ).read_text(encoding="utf-8")
+            )["minimum_client_version"],
+        )
 
     def test_runtime_item_maxima_match_contract_modes(self):
         self.assertEqual(EXPECTED_MAXIMA, self.contract.effective_item_maxima)
@@ -151,11 +188,12 @@ class TestContractRuntimeConsistency(unittest.TestCase):
     def test_board_stage_unlocks_and_location_profiles_match_contract(self):
         self.assertEqual(
             {
-                BoardStage.Board8x8: (0, 0),
-                BoardStage.Board10x8: (1, 0),
-                BoardStage.Board10x10: (1, 1),
-                BoardStage.Board12x10: (2, 1),
-                BoardStage.Board12x12: (2, 2),
+                BoardStage.Board6x8: (0, 0),
+                BoardStage.Board8x8: (1, 0),
+                BoardStage.Board10x8: (2, 0),
+                BoardStage.Board10x10: (2, 1),
+                BoardStage.Board12x10: (3, 1),
+                BoardStage.Board12x12: (3, 2),
             },
             GEOMETRY_UNLOCKS_BY_STAGE,
         )
@@ -166,11 +204,11 @@ class TestContractRuntimeConsistency(unittest.TestCase):
             },
             UNLOCK_ITEM_ROLES,
         )
-        self.assertEqual(2, item_table["Board Files"].quantity)
+        self.assertEqual(3, item_table["Board Files"].quantity)
         self.assertEqual(2, item_table["Board Ranks"].quantity)
         self.assertEqual(
             (
-                ("board-file-unlock", 8, 2, 12),
+                ("board-file-unlock", 6, 2, 12),
                 ("board-rank-unlock", 8, 2, 12),
             ),
             tuple(

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from .locations import BoardStage, location_names_for_stage
+from .locations import location_names_for_stage
 
 
 @dataclass(slots=True)
@@ -53,10 +53,10 @@ class PoolCapacity:
     def for_world(
         cls,
         world: Any,
-        super_sized: bool,
         reserved_locations: int = 0,
     ) -> "PoolCapacity":
-        stage = BoardStage.Board12x12 if super_sized else BoardStage.Board8x8
+        progression = world.geometry_progression
+        stage = progression.endpoint.stage
         tactics = world.options.enable_tactics
         tactics_mode = (
             "none"
@@ -65,7 +65,13 @@ class PoolCapacity:
             if tactics.value == tactics.option_turns
             else "all"
         )
-        location_count = len(location_names_for_stage(stage, tactics_mode))
+        location_count = len(
+            location_names_for_stage(
+                stage,
+                tactics_mode,
+                progression_start=progression.stages[0].stage,
+            )
+        )
         return cls(
             location_count=location_count,
             reserved_locations=min(max(0, reserved_locations), location_count),

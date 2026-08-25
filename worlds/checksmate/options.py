@@ -8,27 +8,51 @@ from Options import Range, Option, Choice, NamedRange, ItemDict, PerGameCommonOp
 from .items import ItemizationMode, itemization_mode
 
 
-class Goal(Choice):
+class MinBoardSize(Choice):
     """
-    How victory is defined.
+    Where the inclusive board series begins.
 
-    Single: Your opponent starts with an army of 7 pieces and 8 pawns. You have a king. Finding checkmate is your goal.
-    To get there, find checks, mate!
+    6x8: Adds a prologue before the normal board.
 
-    Ordered Progressive: Each checkmate unlocks the next board dimension in the sequence
-    8x8, 10x8, 10x10, 12x10, and 12x12. Checkmate the opponent on the final board to win.
+    8x8: Starts on the normal chess board. This is the default.
 
-    Progressive: As Ordered Progressive, but the Board Files and Board Ranks unlocks are shuffled into the multiworld.
+    10x8: Starts after both file expansions.
 
-    Super: You skip the 8x8 board immediately by starting with the first Board Files unlock; later dimensions remain
-    shuffled into the multiworld.
+    Board sizes are listed as files by ranks. The minimum must not exceed the maximum. When the series has more than
+    one board, checkmates unlock the next board through fixed transition events in your own world.
     """
-    display_name = "Goal"
-    option_single = 0
-    option_ordered_progressive = 1
-    option_progressive = 2
-    option_super = 3
-    default = 1
+    display_name = "Minimum Board Size"
+    auto_display_name = False
+    option_6x8 = -1
+    option_8x8 = 0
+    option_10x8 = 1
+    default = option_8x8
+
+
+class MaxBoardSize(Choice):
+    """
+    The final board in the inclusive board series and the board where the game is won.
+
+    Choose any board from 6x8 through 12x10. The default is 12x10. Boards unlock in fixed order through checkmate
+    transition events in your own world, not through shuffled multiworld items. The maximum must not be smaller than
+    the minimum; choosing the same board for both creates a single-board world with no geometry transition.
+
+    Board sizes are listed as files by ranks. 12x12 remains understood by the client and legacy contract data, but is
+    not currently a selectable endpoint.
+    """
+    display_name = "Maximum Board Size"
+    auto_display_name = False
+    option_6x8 = -1
+    option_8x8 = 0
+    option_10x8 = 1
+    option_10x10 = 2
+    option_12x10 = 3
+    default = option_12x10
+
+
+# TODO: If player demand returns, add a file/rank distribution option with
+# Event/Fixed versus Distributed/Multiworld/Scattered concepts. Until then,
+# board-series geometry unlocks are always fixed events in the player's world.
 
 
 class Difficulty(Choice):
@@ -681,7 +705,8 @@ class ChessDeathLink(DeathLink):
 @dataclass
 class CMOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
-    goal: Goal
+    min_board_size: MinBoardSize
+    max_board_size: MaxBoardSize
     progression_itemization: ProgressionItemization
     difficulty: Difficulty
     enable_tactics: EnableTactics

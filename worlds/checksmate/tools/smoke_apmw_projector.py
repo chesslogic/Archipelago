@@ -1,4 +1,4 @@
-"""Smoke-test a frozen APMW projector with one five-geometry request."""
+"""Smoke-test a frozen APMW projector with one all-geometry request."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ CHECKSMATE_ROOT = Path(__file__).resolve().parents[1]
 CASES_FIXTURE = (
     CHECKSMATE_ROOT / "test" / "fixtures" / "projection-v2" / "cases.json"
 )
-GEOMETRIES = ("8x8", "10x8", "10x10", "12x10", "12x12")
+GEOMETRIES = ("6x8", "8x8", "10x8", "10x10", "12x10", "12x12")
 
 
 def smoke(executable: Path) -> None:

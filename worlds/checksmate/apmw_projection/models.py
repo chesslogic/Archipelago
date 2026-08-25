@@ -61,6 +61,14 @@ class UnlockCount:
 
 
 @dataclass(frozen=True)
+class GeometryBaseline:
+    """Physical starting board dimensions, not unlock-step coordinates."""
+
+    files: int
+    ranks: int
+
+
+@dataclass(frozen=True)
 class UpgradePreference:
     action: str
     priority: int
@@ -105,6 +113,7 @@ class ProjectionInput:
     item_counts: tuple[ItemCount, ...] = ()
     unlock_counts: tuple[UnlockCount, ...] = ()
     upgrade_preferences: tuple[UpgradePreference, ...] = ()
+    geometry_baseline: GeometryBaseline | None = None
 
 
 @dataclass(frozen=True)
@@ -321,6 +330,14 @@ def projection_input_from_dict(value: dict[str, Any]) -> ProjectionInput:
                 int(entry.get("proportion_denominator", 1)),
             )
             for entry in value.get("upgrade_preferences", ())
+        ),
+        geometry_baseline=(
+            GeometryBaseline(
+                int(value["geometry_baseline"]["files"]),
+                int(value["geometry_baseline"]["ranks"]),
+            )
+            if "geometry_baseline" in value
+            else None
         ),
     )
 

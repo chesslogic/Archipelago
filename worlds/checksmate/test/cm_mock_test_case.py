@@ -1,10 +1,11 @@
 import unittest
 import random
 from ..options import (EnableTactics, FairyChessArmy, FairyChessPieces, FairyChessPawns, FairyChessPawnUpgrades,
-                      Difficulty, FairyChessPiecesConfigure, Goal, PieceLocations, AsymmetricTrades,
+                      Difficulty, FairyChessPiecesConfigure, MinBoardSize, MaxBoardSize, PieceLocations, AsymmetricTrades,
                       PieceUpgradePreferences, PieceUpgradePriority, PieceUpgradeRatio, FairBoardGuarantee,
                       ProgressionItemization)
-from unittest.mock import patch
+from ..geometry_progression import build_geometry_progression
+
 
 class CMMockTestCase(unittest.TestCase):
     """Base test case that provides a mock world for unit testing."""
@@ -30,7 +31,8 @@ class CMMockTestCase(unittest.TestCase):
                     'max_pocket': type('MaxPocket', (), {'value': 12})(),
                     'pocket_limit_by_pocket': type('PocketLimit', (), {'value': 3})(),
                     'enable_tactics': EnableTactics(EnableTactics.option_all),
-                    'goal': Goal(Goal.option_single),
+                    'min_board_size': MinBoardSize(MinBoardSize.option_8x8),
+                    'max_board_size': MaxBoardSize(MaxBoardSize.option_12x10),
                     'progression_itemization': ProgressionItemization(ProgressionItemization.option_legacy),
                     'fairy_chess_army': FairyChessArmy(FairyChessArmy.option_stable),
                     'fairy_chess_pieces': FairyChessPieces(FairyChessPieces.option_fide),
@@ -49,7 +51,9 @@ class CMMockTestCase(unittest.TestCase):
                     'queen_piece_limit': type('QueenPieceLimit', (), {'value': 2})(),
                     'asymmetric_trades': AsymmetricTrades(AsymmetricTrades.option_jacks),
                     'early_material': type('EarlyMaterial', (), {'value': 0})(),  # Default to off
-                    'locked_items': type('LockedItems', (), {'value': {}})()  # Empty dict for locked items
+                    'locked_items': type('LockedItems', (), {'value': {}})(),
+                    'start_inventory': type('StartInventory', (), {'value': {}})(),
+                    'start_inventory_from_pool': type('StartInventoryPool', (), {'value': {}})(),
                 })()
                 # The above limits to 2 of all except queens, which means:
                 # 2 * 2 = 4 minors
@@ -70,6 +74,13 @@ class CMMockTestCase(unittest.TestCase):
                 
                 # Add multiworld attribute with proper push_precollected method
                 self.multiworld = self._create_mock_multiworld()
+
+            @property
+            def geometry_progression(self):
+                return build_geometry_progression(
+                    self.options.min_board_size.value,
+                    self.options.max_board_size.value,
+                )
 
             def create_item(self, name):
                 """Create a mock item with the given name."""

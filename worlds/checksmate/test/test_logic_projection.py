@@ -13,6 +13,7 @@ from ..options import PieceLocations, ProgressionItemization
 from ..rules import (
     determine_difficulty,
     determine_relaxation,
+    has_board_stage,
     meets_chessmen_expectations,
     meets_material_expectations,
 )
@@ -178,7 +179,7 @@ class TestFundamentalLogicProjectionEnvelope(CMMockTestCase):
     def test_full_upgrade_composition_uses_non_pawn_capacity(self):
         projector = self.projector()
         projector.set_obtainable_counts(projector.maxima)
-        expected = (15, 19, 39, 47, 71)
+        expected = (11, 15, 19, 39, 47, 71)
         for stage, capacity in zip(BoardStage, expected):
             metrics = projector.metrics_from_counts(projector.maxima, stage)
             self.assertEqual(capacity, metrics.chessmen)
@@ -190,7 +191,7 @@ class TestFundamentalLogicProjectionEnvelope(CMMockTestCase):
         counts = {"Chessmen": 107, "Material": 0}
         for stage, non_pawn_capacity in zip(
             BoardStage,
-            (15, 19, 39, 47, 71),
+            (11, 15, 19, 39, 47, 71),
         ):
             metrics = projector.metrics_from_counts(counts, stage)
             self.assertEqual(non_pawn_capacity, metrics.chessmen)
@@ -353,7 +354,7 @@ class TestLegacyLogicProjectionEnvelope(CMMockTestCase):
                 "Progressive Consul",
             )
         )
-        for stage, capacity in zip(BoardStage, (39, 49, 69, 83, 107)):
+        for stage, capacity in zip(BoardStage, (29, 39, 49, 69, 83, 107)):
             active = min(total_owned, capacity)
             metrics = projector.metrics_from_counts(projector.maxima, stage)
             self.assertEqual(active, metrics.chessmen)
@@ -362,7 +363,7 @@ class TestLegacyLogicProjectionEnvelope(CMMockTestCase):
 
 class TestFundamentalStageCertificates(CMTestBase):
     options = {
-        "goal": "progressive",
+        "max_board_size": "12x10",
         "progression_itemization": "fundamental",
         "difficulty": "grandmaster",
     }
@@ -373,7 +374,6 @@ class TestFundamentalStageCertificates(CMTestBase):
             ("Checkmate Minima", "Board Files"),
             ("Checkmate Maxima", "Board Ranks"),
             ("Checkmate 10x10", "Board Files"),
-            ("Checkmate 12x10", "Board Ranks"),
         )
         for location_name, unlock_name in locations:
             location = self.multiworld.get_location(location_name, self.player)
@@ -408,17 +408,29 @@ class TestFundamentalStageCertificates(CMTestBase):
     def test_capture_everything_uses_effective_twelve_by_ten_stage(self):
         location = self.multiworld.get_location("Capture Everything", self.player)
         state = CollectionState(self.multiworld)
-        self.collect_all_but(
-            {"Board Files", "Board Ranks", "Victory", "Progressive Pocket Gems"},
-            state,
-        )
 
         self.world.collect(state, self.world.create_item("Board Files"))
         self.world.collect(state, self.world.create_item("Board Ranks"))
+        self.assertFalse(
+            has_board_stage(
+                state,
+                self.player,
+                BoardStage.Board12x10,
+                self.world.geometry_progression.initial_unlocks,
+            )
+        )
         self.assertFalse(location.can_reach(state))
 
         self.world.collect(state, self.world.create_item("Board Files"))
-        self.assertTrue(location.can_reach(state))
+        self.assertTrue(
+            has_board_stage(
+                state,
+                self.player,
+                BoardStage.Board12x10,
+                self.world.geometry_progression.initial_unlocks,
+            )
+        )
+        self.assertFalse(location.can_reach(state))
 
     def test_capture_everything_keeps_stage_local_strength_requirements(self):
         location = self.multiworld.get_location("Capture Everything", self.player)
@@ -464,7 +476,7 @@ class TestFundamentalStageCertificates(CMTestBase):
 
 class TestLegacyRuleProjection(CMTestBase):
     options = {
-        "goal": "single",
+        "max_board_size": "10x8",
         "progression_itemization": "legacy",
         "difficulty": "grandmaster",
     }
@@ -514,47 +526,9 @@ class TestLegacyRuleProjection(CMTestBase):
         )
 
 
-class _ShuffledGeometrySphereMixin:
-    def test_geometry_unlock_placements_are_stage_safe_and_sphered(self):
-        distribute_items_restrictive(self.multiworld)
-        spheres = list(self.multiworld.get_spheres())
-        self.assertTrue(spheres)
-        self.assertTrue(all(spheres), "Generated an unreachable sphere")
-
-        placed = {"Board Files": 0, "Board Ranks": 0}
-        for sphere in spheres:
-            for location in sphere:
-                if location.item is None or location.item.name not in placed:
-                    continue
-                placed[location.item.name] += 1
-                required_stage = location_table[location.name].required_stage
-                if location.item.name == "Board Files":
-                    self.assertEqual(BoardStage.Board8x8, required_stage)
-                else:
-                    self.assertLessEqual(required_stage, BoardStage.Board10x8)
-        self.assertGreaterEqual(placed["Board Files"], 1)
-        self.assertEqual(2, placed["Board Ranks"])
-
-
-class TestProgressiveGeometrySpheres(_ShuffledGeometrySphereMixin, CMTestBase):
-    options = {
-        "goal": "progressive",
-        "progression_itemization": "fundamental",
-        "difficulty": "grandmaster",
-    }
-
-
-class TestSuperGeometrySpheres(_ShuffledGeometrySphereMixin, CMTestBase):
-    options = {
-        "goal": "super",
-        "progression_itemization": "fundamental",
-        "difficulty": "grandmaster",
-    }
-
-
 class TestOrderedGeometrySpheres(CMTestBase):
     options = {
-        "goal": "ordered_progressive",
+        "max_board_size": "12x10",
         "progression_itemization": "fundamental",
         "difficulty": "grandmaster",
     }
@@ -573,14 +547,13 @@ class TestOrderedGeometrySpheres(CMTestBase):
             "Checkmate Maxima",
             "Checkmate 10x10",
             "Checkmate 12x10",
-            "Checkmate 12x12",
         )
         self.assertEqual(
             sorted(sphere_index[name] for name in chain),
             [sphere_index[name] for name in chain],
         )
         self.assertEqual(
-            ("Board Files", "Board Ranks", "Board Files", "Board Ranks", "Victory"),
+            ("Board Files", "Board Ranks", "Board Files", "Victory"),
             tuple(
                 self.multiworld.get_location(name, self.player).item.name
                 for name in chain

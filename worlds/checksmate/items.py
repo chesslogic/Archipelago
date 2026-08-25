@@ -72,7 +72,7 @@ item_table = {
     "Super-Size Me": CMItemData(4_901_010, ItemClassification.progression, quantity=0),  # :)
     "Material": CMItemData(4_901_011, ItemClassification.progression, quantity=321, material=400),
     "Castler": CMItemData(4_901_012, ItemClassification.progression, quantity=2, material=0),
-    "Board Files": CMItemData(4_901_013, ItemClassification.progression, quantity=2, material=0),
+    "Board Files": CMItemData(4_901_013, ItemClassification.progression, quantity=3, material=0),
     "Board Ranks": CMItemData(4_901_014, ItemClassification.progression, quantity=2, material=0),
 
     # Players have 3 pockets, which can be empty, or hold a pawn, minor piece, major piece, or queen.

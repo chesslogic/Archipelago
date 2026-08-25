@@ -4,15 +4,18 @@ from ..locations import (
     TacticsMode,
     location_names_for_stage,
     location_table,
+    rule_stage_for_series,
     stage_id,
     tactics_mode_for_options,
 )
+from ..rules import has_board_stage
 
 
 class TestGeometryLocationProfiles(CMTestBase):
-    options = {"goal": "single", "enable_tactics": "all"}
+    options = {"max_board_size": "10x8", "enable_tactics": "all"}
 
     EXPECTED_TOTALS = {
+        BoardStage.Board6x8: {"all": 57, "turns": 51, "none": 47},
         BoardStage.Board8x8: {"all": 71, "turns": 65, "none": 61},
         BoardStage.Board10x8: {"all": 86, "turns": 80, "none": 76},
         BoardStage.Board10x10: {"all": 87, "turns": 81, "none": 77},
@@ -76,86 +79,124 @@ class TestGeometryLocationProfiles(CMTestBase):
             BoardStage.Board12x10,
             capture_everything.stage_requirement(True),
         )
+        self.assertEqual(
+            BoardStage.Board10x8,
+            rule_stage_for_series(
+                "Current Objective: Survive 20 Turns",
+                BoardStage.Board10x8,
+                BoardStage.Board10x8,
+            ),
+        )
         self.assertEqual("12x12", stage_id(BoardStage.Board12x12))
         self.assertIs(
             TacticsMode.ALL,
             tactics_mode_for_options(self.world.options),
         )
 
-    def test_single_and_non_single_generated_location_sets(self):
+    def test_selected_terminal_location_set(self):
         self.assertEqual(
-            set(location_names_for_stage(BoardStage.Board8x8)),
+            set(location_names_for_stage(BoardStage.Board10x8)),
             {location.name for location in self.multiworld.get_locations(self.player)},
         )
 
-    def test_victory_is_locked_for_goal(self):
+    def test_transition_and_victory_are_locked_for_series(self):
         self.assertEqual(
-            "Victory",
+            "Board Files",
             self.multiworld.get_location("Checkmate Minima", self.player).item.name,
         )
-
-
-class TestGeometryLocationProfilesProgressive(TestGeometryLocationProfiles):
-    options = {"goal": "progressive", "enable_tactics": "all", "difficulty": "grandmaster"}
-
-    def test_single_and_non_single_generated_location_sets(self):
         self.assertEqual(
-            set(location_names_for_stage(BoardStage.Board12x12)),
+            "Victory",
+            self.multiworld.get_location("Checkmate Maxima", self.player).item.name,
+        )
+
+
+class TestGeometryLocationProfilesProgressive(CMTestBase):
+    options = {
+        "max_board_size": "12x10",
+        "enable_tactics": "all",
+        "difficulty": "grandmaster",
+    }
+
+    def test_selected_terminal_location_set(self):
+        self.assertEqual(
+            set(location_names_for_stage(BoardStage.Board12x10)),
             {location.name for location in self.multiworld.get_locations(self.player)},
         )
 
-    def test_victory_is_locked_for_goal(self):
+    def test_transition_and_victory_are_locked_for_series(self):
         self.assertEqual(
             "Victory",
-            self.multiworld.get_location("Checkmate 12x12", self.player).item.name,
+            self.multiworld.get_location("Checkmate 12x10", self.player).item.name,
         )
 
     def test_checkmates_require_their_geometry_stage(self):
         state = self.multiworld.state
-        self.collect_all_but(
-            {"Board Files", "Board Ranks", "Progressive Pocket Gems", "Victory"},
-            state,
-        )
-
         self.assertFalse(self.multiworld.get_location("Checkmate Maxima", self.player).can_reach(state))
         self.world.collect(state, self.world.create_item("Board Files"))
-        self.assertTrue(self.multiworld.get_location("Checkmate Maxima", self.player).can_reach(state))
+        self.assertFalse(self.multiworld.get_location("Checkmate Maxima", self.player).can_reach(state))
         self.assertFalse(self.multiworld.get_location("Checkmate 10x10", self.player).can_reach(state))
 
         self.world.collect(state, self.world.create_item("Board Ranks"))
+        self.assertTrue(self.multiworld.get_location("Checkmate Maxima", self.player).can_reach(state))
+        self.assertFalse(self.multiworld.get_location("Checkmate 10x10", self.player).can_reach(state))
+
+        self.world.collect(state, self.world.create_item("Board Files"))
         self.assertTrue(self.multiworld.get_location("Checkmate 10x10", self.player).can_reach(state))
         self.assertFalse(self.multiworld.get_location("Checkmate 12x10", self.player).can_reach(state))
 
-        self.world.collect(state, self.world.create_item("Board Files"))
-        self.assertTrue(self.multiworld.get_location("Checkmate 12x10", self.player).can_reach(state))
-        self.assertFalse(self.multiworld.get_location("Checkmate 12x12", self.player).can_reach(state))
-
-        self.world.collect(state, self.world.create_item("Board Ranks"))
-        self.assertTrue(self.multiworld.get_location("Checkmate 12x12", self.player).can_reach(state))
-
     def test_capture_everything_requires_twelve_files(self):
         state = self.multiworld.state
-        self.collect_all_but(
-            {"Board Files", "Board Ranks", "Progressive Pocket Gems", "Victory"},
-            state,
+        self.assertEqual(
+            BoardStage.Board12x10,
+            rule_stage_for_series(
+                "Capture Everything",
+                BoardStage.Board8x8,
+                BoardStage.Board12x10,
+            ),
         )
-        location = self.multiworld.get_location("Capture Everything", self.player)
 
         self.world.collect(state, self.world.create_item("Board Files"))
         self.world.collect(state, self.world.create_item("Board Ranks"))
-        self.assertFalse(location.can_reach(state))
+        self.assertFalse(
+            has_board_stage(
+                state,
+                self.player,
+                BoardStage.Board12x10,
+                self.world.geometry_progression.initial_unlocks,
+            )
+        )
 
         self.world.collect(state, self.world.create_item("Board Files"))
-        self.assertTrue(location.can_reach(state))
+        self.assertTrue(
+            has_board_stage(
+                state,
+                self.player,
+                BoardStage.Board12x10,
+                self.world.geometry_progression.initial_unlocks,
+            )
+        )
 
 
 class TestGeometryLocationProfilesOrdered(CMTestBase):
-    options = {"goal": "ordered_progressive", "enable_tactics": "all"}
+    options = {
+        "min_board_size": "6x8",
+        "max_board_size": "12x10",
+        "enable_tactics": "all",
+    }
 
     def test_full_location_set_and_final_victory(self):
         self.assertEqual(
-            set(location_names_for_stage(BoardStage.Board12x12)),
+            set(
+                location_names_for_stage(
+                    BoardStage.Board12x10,
+                    progression_start=BoardStage.Board6x8,
+                )
+            ),
             {location.name for location in self.multiworld.get_locations(self.player)},
+        )
+        self.assertEqual(
+            "Board Files",
+            self.multiworld.get_location("Checkmate 6x8", self.player).item.name,
         )
         self.assertEqual(
             "Board Files",
@@ -170,24 +211,20 @@ class TestGeometryLocationProfilesOrdered(CMTestBase):
             self.multiworld.get_location("Checkmate 10x10", self.player).item.name,
         )
         self.assertEqual(
-            "Board Ranks",
-            self.multiworld.get_location("Checkmate 12x10", self.player).item.name,
-        )
-        self.assertEqual(
             "Victory",
-            self.multiworld.get_location("Checkmate 12x12", self.player).item.name,
+            self.multiworld.get_location("Checkmate 12x10", self.player).item.name,
         )
 
 
 class TestGeometryLocationProfilesSuper(CMTestBase):
-    options = {"goal": "super", "enable_tactics": "all"}
+    options = {"max_board_size": "10x10", "enable_tactics": "all"}
 
     def test_full_location_set_and_final_victory(self):
         self.assertEqual(
-            set(location_names_for_stage(BoardStage.Board12x12)),
+            set(location_names_for_stage(BoardStage.Board10x10)),
             {location.name for location in self.multiworld.get_locations(self.player)},
         )
         self.assertEqual(
             "Victory",
-            self.multiworld.get_location("Checkmate 12x12", self.player).item.name,
+            self.multiworld.get_location("Checkmate 10x10", self.player).item.name,
         )

@@ -6,7 +6,6 @@ from typing import Any
 
 from .contract_resource import load_production_contract, mode_item_maxima
 from .items import (
-    GEOMETRY_ITEMS,
     LEGACY_CHESSMEN_GROUP,
     ItemizationMode,
     item_allowed_in_mode,
@@ -61,10 +60,6 @@ def collection_item_maximum(options: Any, item_name: str) -> int:
     if (
         item_name not in item_table
         or not item_allowed_in_mode(item_name, mode)
-        or (
-            item_name in GEOMETRY_ITEMS
-            and options.goal.value == options.goal.option_single
-        )
     ):
         return 0
     maximum = item_maxima(mode).get(item_name, 0)
@@ -80,6 +75,11 @@ def generated_item_maximum(world: Any, item_name: str) -> int:
     maximum = collection_item_maximum(options, item_name)
     if maximum <= 0:
         return 0
+
+    if item_name == "Board Files":
+        return world.geometry_progression.generated_unlocks.board_files
+    if item_name == "Board Ranks":
+        return world.geometry_progression.generated_unlocks.board_ranks
 
     option_maxima = {
         "Progressive AI Intelligence Malus": options.max_engine_penalties.value,
