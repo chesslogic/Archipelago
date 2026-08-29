@@ -145,8 +145,8 @@ class TestSemanticProjectionV2(unittest.TestCase):
         )
         self.assertEqual(json.loads(canonical_text), json.loads(snapshot_text))
         self.assertEqual(
-            r"..\chessv\APMW.Test\Fixtures\ProjectionV2",
-            str(SNAPSHOT_SOURCE),
+            ("..", "chessv", "APMW.Test", "Fixtures", "ProjectionV2"),
+            SNAPSHOT_SOURCE.parts,
         )
         self.assertEqual(
             r"Copy-Item ..\chessv\APMW.Test\Fixtures\ProjectionV2\*.json "
