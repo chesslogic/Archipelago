@@ -1,11 +1,14 @@
 import hashlib
+import importlib.machinery
 import importlib.util
 import json
 from pathlib import Path
-import shutil
 import stat
 import sys
+import tempfile
+from types import ModuleType
 import unittest
+from unittest.mock import patch
 import zipfile
 
 if __package__:
@@ -32,7 +35,6 @@ RELEASE_SCRIPT = (
     / "tools"
     / "create_apmw_projector_release_manifest.py"
 )
-TEST_OUTPUT = REPOSITORY_ROOT / "build" / "test-apmw-projector-release-manifest"
 SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 SOURCE_REPOSITORY = "chesslogic/Archipelago"
 EXPECTED_PROJECTOR_METADATA = {
@@ -50,8 +52,17 @@ def load_release_builder():
     assert specification is not None
     assert specification.loader is not None
     module = importlib.util.module_from_spec(specification)
+    missing = object()
+    previous = sys.modules.get(specification.name, missing)
+    # Dataclasses needs this registration while resolving postponed annotations.
     sys.modules[specification.name] = module
-    specification.loader.exec_module(module)
+    try:
+        specification.loader.exec_module(module)
+    finally:
+        if previous is missing:
+            sys.modules.pop(specification.name, None)
+        else:
+            sys.modules[specification.name] = previous
     return module
 
 
@@ -61,11 +72,105 @@ class TestApmwProjectorReleaseManifest(unittest.TestCase):
         cls.release_builder = load_release_builder()
 
     def setUp(self):
-        shutil.rmtree(TEST_OUTPUT, ignore_errors=True)
-        TEST_OUTPUT.mkdir(parents=True)
+        directory = tempfile.TemporaryDirectory(
+            prefix="test-apmw-projector-release-manifest-"
+        )
+        self.addCleanup(directory.cleanup)
+        self.test_output = Path(directory.name)
 
-    def tearDown(self):
-        shutil.rmtree(TEST_OUTPUT, ignore_errors=True)
+    def test_overlapping_fixture_lifecycles_preserve_each_others_files(self):
+        first = self._input("windows", "x86")
+        expected = {
+            path: path.read_bytes() for path in (first.build_manifest, first.archive)
+        }
+        second = type(self)()
+        self.addCleanup(second.doCleanups)
+        second.setUp()
+        try:
+            with self.subTest(phase="second setup"):
+                for path, contents in expected.items():
+                    self.assertEqual(contents, path.read_bytes())
+            second_input = second._input("windows", "x86")
+        finally:
+            second.tearDown()
+            second.doCleanups()
+
+        with self.subTest(phase="second cleanup"):
+            for path, contents in expected.items():
+                self.assertEqual(contents, path.read_bytes())
+        self.assertFalse(second_input.build_manifest.parent.exists())
+
+    def test_failed_fixture_lifecycle_cleans_up_its_files(self):
+        for phase in ("setup", "test"):
+            with self.subTest(phase=phase):
+                class FailingFixture(TestApmwProjectorReleaseManifest):
+                    def setUp(self):
+                        super().setUp()
+                        self.fixture = self._input("windows", "x86")
+                        if phase == "setup":
+                            raise RuntimeError("fixture setup failed")
+
+                    def runTest(self):
+                        raise RuntimeError("fixture test failed")
+
+                case = FailingFixture()
+                self.addCleanup(case.doCleanups)
+                result = unittest.TestResult()
+                case.run(result)
+                self.assertEqual(1, len(result.errors))
+                self.assertIn(f"RuntimeError: fixture {phase} failed", result.errors[0][1])
+                self.assertFalse(case.fixture.build_manifest.parent.exists())
+
+    def test_release_builder_load_restores_module_registration(self):
+        module_name = self.release_builder.__name__
+        missing = object()
+        original = sys.modules.get(module_name, missing)
+        if original is missing:
+            self.addCleanup(sys.modules.pop, module_name, None)
+        else:
+            self.addCleanup(sys.modules.__setitem__, module_name, original)
+        dependency = ModuleType("_checksmate_release_builder_test_dependency")
+        self.assertNotIn(dependency.__name__, sys.modules)
+        self.addCleanup(sys.modules.pop, dependency.__name__, None)
+        exec_module = importlib.machinery.SourceFileLoader.exec_module
+
+        for previous in (missing, self.release_builder, None):
+            for fails in (False, True):
+                with self.subTest(previous=previous, fails=fails):
+                    if previous is missing:
+                        sys.modules.pop(module_name, None)
+                    else:
+                        sys.modules[module_name] = previous
+                    sys.modules.pop(dependency.__name__, None)
+
+                    def exec_with_dependency(loader, module):
+                        if module.__name__ == module_name:
+                            self.assertIs(module, sys.modules[module_name])
+                            sys.modules[dependency.__name__] = dependency
+                            if fails:
+                                raise RuntimeError("release builder execution failed")
+                        return exec_module(loader, module)
+
+                    with patch.object(
+                        importlib.machinery.SourceFileLoader,
+                        "exec_module",
+                        autospec=True,
+                        side_effect=exec_with_dependency,
+                    ):
+                        if fails:
+                            with self.assertRaisesRegex(
+                                RuntimeError, "release builder execution failed"
+                            ):
+                                load_release_builder()
+                        else:
+                            builder = load_release_builder()
+                            self.assertIsNot(builder, previous)
+
+                    if previous is missing:
+                        self.assertNotIn(module_name, sys.modules)
+                    else:
+                        self.assertIs(previous, sys.modules[module_name])
+                    self.assertIs(dependency, sys.modules.get(dependency.__name__))
 
     def test_combines_two_archives_into_canonical_immutable_manifest(self):
         x86 = self._input("windows", "x86")
@@ -78,7 +183,7 @@ class TestApmwProjectorReleaseManifest(unittest.TestCase):
             "apmw-projector-v0.1.0",
         )
         output = self.release_builder.write_release_manifest(
-            manifest, TEST_OUTPUT / "release.json"
+            manifest, self.test_output / "release.json"
         )
 
         self.assertEqual(
@@ -164,7 +269,7 @@ class TestApmwProjectorReleaseManifest(unittest.TestCase):
     def test_rejects_unrequested_or_invalid_input_files(self):
         x86 = self._input("windows", "x86")
         missing = self.release_builder.ReleaseInput(
-            TEST_OUTPUT / "missing.json", x86.archive
+            self.test_output / "missing.json", x86.archive
         )
         with self.assertRaisesRegex(ValueError, "not a regular file"):
             self.release_builder.create_release_manifest(
@@ -336,8 +441,8 @@ class TestApmwProjectorReleaseManifest(unittest.TestCase):
 
     def _input(self, platform: str, architecture: str, suffix: str = ""):
         stem = f"{platform}-{architecture}{suffix}"
-        build_manifest = TEST_OUTPUT / f"{stem}.json"
-        archive = TEST_OUTPUT / f"{stem}.zip"
+        build_manifest = self.test_output / f"{stem}.json"
+        archive = self.test_output / f"{stem}.zip"
         build_manifest.write_text(
             json.dumps(
                 {

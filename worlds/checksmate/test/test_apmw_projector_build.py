@@ -2,8 +2,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
-import shutil
 import sys
+from tempfile import TemporaryDirectory
 import unittest
 from unittest import mock
 
@@ -27,7 +27,6 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 CHECKSMATE_TOOLS = REPOSITORY_ROOT / "worlds" / "checksmate" / "tools"
 BUILD_SCRIPT = CHECKSMATE_TOOLS / "build_apmw_projector.py"
 BUILD_REQUIREMENTS = CHECKSMATE_TOOLS / "apmw_projector_build_requirements.txt"
-TEST_OUTPUT = REPOSITORY_ROOT / "build" / "test-apmw-projector-manifest"
 EXPECTED_PROJECTOR_METADATA = {
     "runtime_semantic_version": "0.1.0",
     "protocol_version": 1,
@@ -53,17 +52,41 @@ class TestApmwProjectorBuild(unittest.TestCase):
         cls.builder = load_builder()
 
     def setUp(self):
-        shutil.rmtree(TEST_OUTPUT, ignore_errors=True)
-        TEST_OUTPUT.mkdir(parents=True)
+        # Standalone metadata loading adds ChecksMate to the import path.
+        path_patch = mock.patch.object(sys, "path", sys.path.copy())
+        self.addCleanup(path_patch.stop)
+        path_patch.start()
+        output_directory = TemporaryDirectory()
+        self.addCleanup(output_directory.cleanup)
+        self.test_output = Path(output_directory.name)
 
-    def tearDown(self):
-        shutil.rmtree(TEST_OUTPUT, ignore_errors=True)
+    def test_overlapping_fixtures_preserve_executable_and_manifest(self):
+        executable_contents = b"first projector fixture"
+        executable = self.test_output / self.builder.projector_executable_name()
+        executable.write_bytes(executable_contents)
+        manifest_path = self.builder.write_manifest(executable, self.test_output)
+        manifest_contents = manifest_path.read_bytes()
+
+        def assert_original_artifacts_preserved():
+            self.assertEqual(executable_contents, executable.read_bytes())
+            self.assertEqual(manifest_contents, manifest_path.read_bytes())
+
+        class OverlappingFixture(TestApmwProjectorBuild):
+            def runTest(self):
+                assert_original_artifacts_preserved()
+
+        result = unittest.TestResult()
+        unittest.TestSuite([OverlappingFixture()]).run(result)
+
+        self.assertEqual([], result.errors)
+        self.assertEqual([], result.failures)
+        assert_original_artifacts_preserved()
 
     def test_manifest_has_stable_metadata_and_executable_checksum(self):
-        executable = TEST_OUTPUT / self.builder.projector_executable_name()
+        executable = self.test_output / self.builder.projector_executable_name()
         executable.write_bytes(b"APMW standalone projector fixture")
 
-        manifest_path = self.builder.write_manifest(executable, TEST_OUTPUT)
+        manifest_path = self.builder.write_manifest(executable, self.test_output)
         manifest = json.loads(manifest_path.read_text(encoding="ascii"))
 
         self.assertEqual(EXPECTED_PROJECTOR_METADATA, self.builder.projector_metadata())
